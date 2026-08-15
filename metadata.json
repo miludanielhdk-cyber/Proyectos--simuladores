@@ -1,0 +1,7 @@
+{
+  "name": "MathMaster AI",
+  "description": "Tutor interactivo de álgebra y ecuaciones para secundaria en números Naturales (N), Enteros (Z) y Racionales (Q) con método socrático y rigor matemático.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

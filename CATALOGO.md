@@ -35,7 +35,7 @@ Este catálogo registra **qué está publicado y dónde**. El código fuente de 
 | expresionesalgebraicas3ro | https://expresionesalgebraicas3ro.netlify.app |
 | potenciacion-y-radicacion | https://potenciacion-y-radicacion.netlify.app |
 
-## Funciones, plano cartesiano y proporcionalidad (5)
+## Funciones, plano cartesiano y proporcionalidad (6)
 
 | Sitio | Enlace |
 |---|---|
@@ -43,6 +43,7 @@ Este catálogo registra **qué está publicado y dónde**. El código fuente de 
 | planoyfuncionlineal | https://planoyfuncionlineal.netlify.app |
 | planoyfuncionlineal-2 | https://planoyfuncionlineal-2.netlify.app |
 | planoyfuncionlineal2 | https://planoyfuncionlineal2.netlify.app |
+| planoyfuncionlineal3 | https://planoyfuncionlineal3.netlify.app |
 | proporcionalidaddirecta246 | https://proporcionalidaddirecta246.netlify.app |
 
 ## Geometría (3)
@@ -85,6 +86,13 @@ Estos sitios conservan el nombre que Netlify asigna por defecto. Conviene abrirl
 - `geometrycup` / `geometriacup`
 - `ia-en-el-cup` / `ia-en-el-cup-2026`
 - `ecuaciones718` / `ecuacionesprimergrado718` / `ecuaciones-1er-grado`
+
+## Código guardado en `sitios/`
+
+| Carpeta | Contenido | Última actualización |
+|---|---|---|
+| `sitios/planoyfuncionlineal-2/` | Viaje por el Plano 2 (nivel 2, Escuela 718). Corregido: el botón «Siguiente» ya no aparece antes de responder. | 12/11/2026 |
+| `sitios/planoyfuncionlineal3/` | Viaje por el Plano 3 (nivel 3, Escuela 718, trabajo con Simón): plano de −6 a 6, mover puntos, distancias, perímetro y área, tablas que suben y bajan, dos gráficos, rectas y ejes; cuentas para hacer en la hoja. | 12/11/2026 |
 
 ## Criterio de guardado de aquí en adelante
 

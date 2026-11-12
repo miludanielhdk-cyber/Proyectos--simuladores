@@ -1,0 +1,961 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Viaje por el Plano 2</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: una sola columna centrada tipo "boleto de tren"; vías como hilo conductor entre estaciones.
+   Paleta: azul del escudo 718 + amarillo señal ferroviaria + verde/coral para correcto/reintentar. */
+:root{
+  --bg:#eef2fb; --surface:#ffffff; --surface-2:#e3e9f8; --ink:#16213f; --ink-soft:#4a5577;
+  --blue:#1f3f9e; --blue-soft:#d7e0f7; --signal:#f2b632; --signal-soft:#fdf0cf;
+  --ok:#1e8a52; --ok-soft:#d9f2e4; --retry:#c4533a; --retry-soft:#fbe3dc;
+  --grid:#cdd6ec; --axis:#16213f; --line:#c4533a;
+  --pt-a:#1f3f9e; --pt-ghost:rgba(31,63,158,.35);
+  --font-display:"Fredoka","Trebuchet MS",system-ui,sans-serif;
+  --font-body:"Atkinson Hyperlegible",Verdana,system-ui,sans-serif;
+  --base:18px; --radius:16px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0f1528; --surface:#18213b; --surface-2:#222d4d; --ink:#eef1fb; --ink-soft:#b2bbd6;
+  --blue:#8fa9f5; --blue-soft:#25346a; --signal:#f5c454; --signal-soft:#3d3214;
+  --ok:#5fd394; --ok-soft:#173d2a; --retry:#f08a72; --retry-soft:#43221b;
+  --grid:#2f3b60; --axis:#e6eaf7; --line:#f08a72; --pt-a:#a9bdf8; --pt-ghost:rgba(169,189,248,.4);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1528; --surface:#18213b; --surface-2:#222d4d; --ink:#eef1fb; --ink-soft:#b2bbd6;
+  --blue:#8fa9f5; --blue-soft:#25346a; --signal:#f5c454; --signal-soft:#3d3214;
+  --ok:#5fd394; --ok-soft:#173d2a; --retry:#f08a72; --retry-soft:#43221b;
+  --grid:#2f3b60; --axis:#e6eaf7; --line:#f08a72; --pt-a:#a9bdf8; --pt-ghost:rgba(169,189,248,.4);
+  color-scheme:dark}
+html{font-size:var(--base)}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-body);font-size:1rem;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 32px}
+*{box-sizing:border-box}
+h1,h2,h3{font-family:var(--font-display);text-wrap:balance;line-height:1.15;margin:0}
+button{font:inherit;cursor:pointer}
+[hidden]{display:none!important} /* el botón «Siguiente» queda oculto hasta responder bien */
+:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+.wrap{max-width:860px;margin:0 auto}
+/* ---------- encabezado ---------- */
+.top{display:flex;align-items:center;gap:14px;padding-block:14px;border-bottom:3px dashed var(--grid)}
+.top img{width:52px;height:auto;flex:none}
+.top .inst{min-width:0}
+.top .inst b{font-family:var(--font-display);font-size:1.05rem;display:block}
+.top .inst span{font-size:.8rem;color:var(--ink-soft)}
+.tools{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0 4px}
+.chip{border:2px solid var(--grid);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;font-size:.82rem}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:var(--surface)}
+.chip:hover{border-color:var(--blue)}
+/* ---------- tarjetas y botones ---------- */
+.card{background:var(--surface);border-radius:var(--radius);padding:22px;margin-top:18px;box-shadow:0 2px 0 var(--grid)}
+.btn{border:none;border-radius:14px;padding:12px 20px;font-family:var(--font-display);font-weight:600;font-size:1.02rem;
+  background:var(--blue);color:var(--surface);display:inline-flex;align-items:center;gap:8px}
+.btn.alt{background:var(--surface-2);color:var(--ink)}
+.btn.sig{background:var(--signal);color:#16213f}
+.btn.ok{background:var(--ok);color:var(--surface)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.muted{color:var(--ink-soft)}
+.small{font-size:.85rem}
+/* ---------- portada ---------- */
+.hero{display:grid;grid-template-columns:1fr auto;gap:18px;align-items:center}
+.hero h1{font-size:2.3rem;color:var(--blue)}
+.hero .badge{display:inline-block;background:var(--signal);color:#16213f;font-family:var(--font-display);font-weight:600;
+  border-radius:8px;padding:2px 10px;font-size:.9rem;margin-bottom:8px}
+.hero img{width:120px}
+.rules{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.rule{background:var(--surface-2);border-radius:12px;padding:12px 14px}
+.rule b{font-family:var(--font-display);font-size:1.05rem}
+.ex{background:var(--signal-soft);border-radius:12px;padding:12px 14px;margin-top:12px}
+input[type=text],input[type=number],textarea{font:inherit;color:var(--ink);background:var(--surface);border:2px solid var(--grid);border-radius:10px;padding:8px 10px}
+table.vt input{width:5.2rem;text-align:center;font-weight:700}
+/* ---------- mapa ---------- */
+.track{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-top:16px;position:relative}
+.stop{background:var(--surface);border:3px solid var(--grid);border-radius:14px;padding:12px 10px;text-align:left;color:var(--ink);
+  display:flex;flex-direction:column;gap:4px;min-height:118px;position:relative}
+.stop:hover{border-color:var(--blue)}
+.stop .n{font-family:var(--font-display);font-weight:700;font-size:1.5rem;color:var(--blue);line-height:1}
+.stop .t{font-size:.85rem;line-height:1.25}
+.stop .st{margin-top:auto;font-size:.78rem;font-weight:700}
+.stop.done{border-color:var(--ok);background:var(--ok-soft)}
+.stop.done .st{color:var(--ok)}
+.stop.prog .st{color:var(--blue)}
+.meter{height:12px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin-top:10px}
+.meter i{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--ok) 0 18px,var(--signal) 18px 22px);transition:width .5s}
+/* ---------- estación ---------- */
+.sthead{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:16px}
+.sthead h2{font-size:1.45rem}
+.sthead .lbl{font-family:var(--font-display);color:var(--blue);font-size:.95rem;text-transform:uppercase;letter-spacing:.06em}
+.dots{display:flex;gap:6px}
+.dots span{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:.85rem;background:var(--surface-2);color:var(--ink-soft)}
+.dots span.on{background:var(--signal);color:#16213f}
+.dots span.ok{background:var(--ok);color:var(--surface)}
+.ctx{background:var(--signal-soft);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+.q{font-size:1.12rem;font-weight:700;display:flex;gap:10px;align-items:flex-start}
+.q .say{flex:none;border:none;background:var(--surface-2);border-radius:50%;width:38px;height:38px}
+.stage{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:20px;margin-top:14px;align-items:start}
+.stage.single{grid-template-columns:minmax(0,1fr)}
+.planebox{min-width:0}
+.planebox svg{width:100%;height:auto;max-width:560px;display:block;margin:0 auto;touch-action:manipulation;user-select:none}
+.opts{display:grid;gap:10px}
+.opt{border:3px solid var(--grid);background:var(--surface);color:var(--ink);border-radius:14px;padding:12px 14px;text-align:left;font-size:1.05rem;font-weight:700}
+.opt:hover{border-color:var(--blue)}
+.opt.bad{border-color:var(--retry);background:var(--retry-soft)}
+.opt.good{border-color:var(--ok);background:var(--ok-soft)}
+.targets{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.tg{padding:6px 12px;border-radius:10px;background:var(--surface-2);font-weight:700;font-variant-numeric:tabular-nums}
+.tg.now{background:var(--signal);color:#16213f}
+.tg.done{background:var(--ok-soft);color:var(--ok);text-decoration:line-through}
+.tblwrap{overflow-x:auto}
+table.vt{border-collapse:collapse;font-variant-numeric:tabular-nums;margin:6px 0}
+table.vt th,table.vt td{border:2px solid var(--grid);padding:6px 8px;text-align:center;min-width:64px}
+table.vt th{background:var(--blue-soft);font-family:var(--font-display);font-weight:600;text-align:left;white-space:nowrap}
+table.vt input.good{border-color:var(--ok);background:var(--ok-soft)}
+table.vt input.bad{border-color:var(--retry);background:var(--retry-soft)}
+.formula{display:inline-block;background:var(--blue-soft);border-radius:10px;padding:4px 12px;font-weight:700;font-variant-numeric:tabular-nums}
+.fb{margin-top:16px;border-radius:14px;padding:12px 16px;display:none;gap:12px;align-items:center}
+.fb.show{display:flex}
+.fb .face{font-size:2.2rem;line-height:1}
+.fb.good{background:var(--ok-soft)}
+.fb.bad{background:var(--retry-soft)}
+.fb.info{background:var(--signal-soft)}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.help{margin-top:12px;background:var(--surface-2);border-radius:12px;padding:12px 14px;display:none}
+.help.show{display:block}
+/* ---------- modales ---------- */
+.modal{position:fixed;inset:0;background:rgba(10,16,35,.55);display:flex;align-items:flex-start;justify-content:center;z-index:50;overflow:auto;
+  padding:max(20px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 20px max(16px,env(safe-area-inset-left,0px))}
+.modal .card{max-width:640px;width:100%;margin-top:4vh}
+.steps li{margin-bottom:6px}
+.steps li.cur{font-weight:700;color:var(--blue)}
+/* ---------- diploma ---------- */
+.diploma{background:#fffdf6;color:#16213f;border:10px double #1f3f9e;border-radius:6px;padding:28px;text-align:center;position:relative}
+.diploma img{width:96px}
+.diploma h2{font-size:2.2rem;color:#1f3f9e;margin-top:6px}
+.diploma .who{font-family:var(--font-display);font-size:2rem;border-bottom:2px solid #c9a227;display:inline-block;padding:0 20px;margin:8px 0}
+.diploma .seal{font-size:3rem}
+.diploma .firma{display:flex;justify-content:space-around;flex-wrap:wrap;gap:20px;margin-top:26px;font-size:.85rem}
+.diploma .firma div{border-top:1.5px solid #16213f;padding-top:4px;min-width:180px}
+/* ---------- actividades ---------- */
+.act{border-top:2px dashed var(--grid);padding-top:14px;margin-top:14px}
+.act h3{font-size:1.1rem;color:var(--blue)}
+.act ol{padding-left:1.3rem}
+.key{display:none;background:var(--ok-soft);border-radius:10px;padding:10px 14px;margin-top:8px}
+.key.show{display:block}
+.blank{display:inline-block;min-width:3.5rem;border-bottom:2px solid var(--ink-soft)}
+.panel table{border-collapse:collapse;width:100%;font-size:.88rem;font-variant-numeric:tabular-nums}
+.panel th,.panel td{border:1px solid var(--grid);padding:5px 6px;text-align:center}
+.panel th{background:var(--blue-soft)}
+.foot{margin-top:30px;text-align:center;font-size:.8rem;color:var(--ink-soft)}
+.confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+@keyframes pop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+.pop{animation:pop .35s ease-out}
+svg .pop{transform-box:fill-box;transform-origin:center}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+svg .fade{animation:fade .5s ease-out}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.shake{animation:shake .3s}
+body.calm *{animation:none!important;transition:none!important}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:720px){
+  .stage{grid-template-columns:minmax(0,1fr)}
+  .track{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .rules{grid-template-columns:minmax(0,1fr)}
+  .hero{grid-template-columns:minmax(0,1fr)}
+  .hero img{display:none}
+  .hero h1{font-size:1.9rem}
+}
+@media print{
+  body{background:#fff;color:#000;padding:0}
+  .noprint,.top,.tools,.foot{display:none!important}
+  .card{box-shadow:none;margin:0;padding:8px}
+  .printhide{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <img class="logo718" alt="Escudo de la Escuela N.º 718 Libertad">
+    <div class="inst"><b>Escuela N.º 718 "Libertad"</b><span>Rada Tilly · Chubut · Matemática · Prof. y Mg. Hugo D. Karlau</span></div>
+  </header>
+  <div class="tools noprint" role="toolbar" aria-label="Opciones">
+    <button class="chip" id="fMinus" aria-label="Letra más chica">A−</button>
+    <button class="chip" id="fPlus" aria-label="Letra más grande">A+</button>
+    <button class="chip" id="tMusic" aria-pressed="false">🎵 Música</button>
+    <button class="chip" id="tVoice" aria-pressed="true">🔊 Voz y sonidos</button>
+    <button class="chip" id="tCalm" aria-pressed="false">🌙 Modo tranquilo</button>
+    <button class="chip" id="goMap">🗺️ Mapa del viaje</button>
+    <button class="chip" id="goAct">📝 Actividades</button>
+  </div>
+  <main id="app"></main>
+  <p class="foot">Material educativo accesible · Plano cartesiano, tablas y gráficos (nivel 2) · Prof. y Mg. Hugo D. Karlau · <span style="white-space:nowrap">Panel docente: Ctrl + D</span></p>
+</div>
+
+<script>
+/* =====================================================================
+   VIAJE POR EL PLANO 2 · Escuela N.º 718 "Libertad"
+   Estructura del código:
+   1) Utilidades           2) Generadores de las 10 estaciones (puros)
+   3) Dibujo del plano     4) Interfaz (pantallas, ejercicio, mapa, diploma)
+   5) Sonido, voz y música 6) Progreso (localStorage) y panel docente
+   ===================================================================== */
+
+/* ---------- 1) UTILIDADES ---------- */
+const LOGO_SRC = "data:image/png;base64,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";
+const MINUS = "\u2212";
+const fmt = n => (n < 0 ? MINUS + Math.abs(n) : String(n));
+const co = (x, y) => `(${fmt(x)}\u00a0;\u00a0${fmt(y)})`; // espacios que no se cortan
+const rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = arr => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const mul = "×";
+function rule(a, b, X = "x", Y = "y") { // texto de fórmula lineal
+  let s = `${Y} = ${a === 1 ? "" : a + " " + mul + " "}${X}`;
+  if (b > 0) s += ` + ${b}`; else if (b < 0) s += ` ${MINUS} ${-b}`;
+  return s;
+}
+/* opciones: la primera es la correcta; se mezclan y se eliminan repetidas */
+function mkOpts(correct, ...wrong) {
+  const seen = new Set([correct]); const out = [{ t: correct, ok: true }];
+  wrong.forEach(w => { if (!seen.has(w)) { seen.add(w); out.push({ t: w, ok: false }); } });
+  return shuffle(out);
+}
+function moveText(n, axis) {
+  if (axis === "x") return n === 0 ? "no te movés hacia los costados" : n > 0 ? `vas ${n} hacia la derecha` : `vas ${-n} hacia la izquierda`;
+  return n === 0 ? "no vas hacia arriba ni hacia abajo" : n > 0 ? `vas ${n} hacia arriba` : `vas ${-n} hacia abajo`;
+}
+function walkSolve(x, y) {
+  return [
+    "Empezá en el origen: el punto (0 ; 0), donde se cruzan los dos ejes.",
+    `El 1.º número es ${fmt(x)}: ${moveText(x, "x")}.`,
+    `El 2.º número es ${fmt(y)}: desde ahí ${moveText(y, "y")}.`,
+    `¡Llegaste! Ese es el punto ${co(x, y)}.`
+  ];
+}
+const HELP_PLACE = "Empezá siempre en el (0 ; 0). El 1.º número te dice cuánto vas hacia la derecha (si es positivo) o hacia la izquierda (si es negativo). El 2.º número te dice cuánto vas hacia arriba (positivo) o hacia abajo (negativo).";
+
+/* ---------- 2) GENERADORES DE ESTACIONES ----------
+   Cada ejercicio: { ctx?, plane?, steps:[...] }
+   Tipos de paso: mc (opción múltiple), place (marcar puntos), table (completar tabla) */
+const P8 = { xmin: 0, xmax: 8, ymin: 0, ymax: 8 };
+const P5 = { xmin: -5, xmax: 5, ymin: -5, ymax: 5 };
+
+function distinctPoints(n, gen) {
+  const pts = []; let guard = 0;
+  while (pts.length < n && guard++ < 500) { const p = gen(); if (!pts.some(q => q[0] === p[0] && q[1] === p[1])) pts.push(p); }
+  return pts;
+}
+function readOptions(x, y, withSigns) { // distractores de lectura de coordenadas
+  const c = co(x, y);
+  const pool = withSigns ? [co(-x, y), co(x, -y), co(-x, -y)] : [co(x + 1, y), co(x, y + 1), co(x + 1, y + 1)];
+  const chosen = [];
+  if (co(y, x) !== c) chosen.push(co(y, x)); // orden invertido: el error más frecuente
+  shuffle(pool).forEach(w => { if (chosen.length < 3 && w !== c && !chosen.includes(w)) chosen.push(w); });
+  return mkOpts(c, ...chosen);
+}
+
+const STATIONS = [
+  { id: 1, icon: "👀", title: "Leer coordenadas", sub: "Puntos del 1.º cuadrante y sobre los ejes",
+    gen() {
+      const pts = [[0, rnd(2, 7)], [rnd(2, 7), 0]];
+      while (pts.length < 4) { const x = rnd(1, 8), y = rnd(1, 8); if (x !== y && !pts.some(p => p[0] === x && p[1] === y)) pts.push([x, y]); }
+      return shuffle(pts).map(([x, y]) => ({
+        plane: { ...P8, points: [{ x, y, label: "P", show: false }] },
+        steps: [{ type: "mc", q: "¿Cuáles son las coordenadas del punto P?", options: readOptions(x, y, false),
+          help: "Contá desde el (0 ; 0). Primero, cuánto vas hacia la derecha. Después, cuánto vas hacia arriba. Si el punto está sobre un eje, uno de los números es 0.",
+          solve: walkSolve(x, y), walk: [x, y] }]
+      }));
+    } },
+  { id: 2, icon: "📍", title: "Ubicar puntos", sub: "Marcar dos puntos en cada plano",
+    gen() {
+      const out = [];
+      for (let i = 0; i < 4; i++) {
+        const pts = distinctPoints(2, () => i === 1 ? (Math.random() < .5 ? [0, rnd(1, 8)] : [rnd(1, 8), 0]) : [rnd(1, 8), rnd(0, 8)]);
+        if (i === 3) pts[1] = pts[0][0] === pts[0][1] ? [pts[0][0], (pts[0][1] + 3) % 9] : [pts[0][1], pts[0][0]]; // un par "espejo": (a;b) y (b;a)
+        if (pts[0][0] === pts[1][0] && pts[0][1] === pts[1][1]) pts[1] = [pts[1][0], (pts[1][1] + 2) % 9];
+        out.push({ plane: { ...P8, points: [] },
+          steps: [{ type: "place", q: i === 3 ? "Marcá los dos puntos. ¡Ojo, se parecen!" : "Marcá los puntos en el plano tocando el cruce de las líneas.",
+            targets: [{ x: pts[0][0], y: pts[0][1], label: "A" }, { x: pts[1][0], y: pts[1][1], label: "B" }], help: HELP_PLACE }] });
+      }
+      return out;
+    } },
+  { id: 3, icon: "➖", title: "Los números negativos", sub: "Izquierda y abajo en el plano",
+    gen() {
+      const out = [];
+      const dirs = shuffle([[-rnd(1, 5), rnd(1, 5)], [rnd(1, 5), -rnd(1, 5)], [-rnd(1, 5), -rnd(1, 5)]]).slice(0, 2);
+      dirs.forEach(([x, y]) => {
+        const ok = `${cap(moveText(x, "x"))} y ${moveText(y, "y")}.`;
+        const w1 = `${cap(moveText(-x, "x"))} y ${moveText(y, "y")}.`;
+        const w2 = `${cap(moveText(x, "x"))} y ${moveText(-y, "y")}.`;
+        const w3 = `${cap(moveText(y, "x"))} y ${moveText(x, "y")}.`;
+        out.push({ plane: { ...P5, points: [] }, steps: [{ type: "mc", q: `Para llegar al punto ${co(x, y)} desde el (0 ; 0), ¿qué hacés?`,
+          options: mkOpts(ok, w1, w2, w3), help: "Si el 1.º número es negativo, vas hacia la izquierda. Si el 2.º número es negativo, vas hacia abajo.", solve: walkSolve(x, y), walk: [x, y] }] });
+      });
+      const pts = [[-rnd(1, 5), rnd(1, 5)], [-rnd(1, 5), -rnd(1, 5)], [rnd(1, 5), -rnd(1, 5)]];
+      shuffle(pts).slice(0, 2).forEach(([x, y]) => {
+        out.push({ plane: { ...P5, points: [{ x, y, label: "Q", show: false }] },
+          steps: [{ type: "mc", q: "¿Cuáles son las coordenadas del punto Q?", options: readOptions(x, y, true),
+            help: "Mirá hacia qué lado está el punto. A la izquierda del eje vertical, el 1.º número es negativo. Abajo del eje horizontal, el 2.º número es negativo.", solve: walkSolve(x, y), walk: [x, y] }] });
+      });
+      return out;
+    } },
+  { id: 4, icon: "🧭", title: "Puntos en los 4 cuadrantes", sub: "Marcar puntos con negativos",
+    gen() {
+      const gens = [() => [-rnd(1, 5), rnd(1, 5)], () => [-rnd(1, 5), -rnd(1, 5)], () => [rnd(1, 5), -rnd(1, 5)]];
+      const out = shuffle(gens).map(g => { const [x, y] = g(); return { plane: { ...P5, points: [] },
+        steps: [{ type: "place", q: "Marcá el punto en el plano.", targets: [{ x, y, label: "M" }], help: HELP_PLACE }] }; });
+      const a = [0, -rnd(1, 5)], b = [-rnd(1, 5), 0], c = [rnd(1, 4), -rnd(1, 4)];
+      out.push({ plane: { ...P5, points: [] }, steps: [{ type: "place", q: "Marcá los tres puntos. Dos están sobre los ejes.",
+        targets: [{ x: a[0], y: a[1], label: "R" }, { x: b[0], y: b[1], label: "S" }, { x: c[0], y: c[1], label: "T" }], help: HELP_PLACE }] });
+      return out;
+    } },
+  { id: 5, icon: "🔷", title: "Formar figuras", sub: "Unir puntos en los 4 cuadrantes",
+    gen() {
+      const shapes = [
+        { name: "Rectángulo", pts: [[-4, 3], [2, 3], [2, -1], [-4, -1]] },
+        { name: "Triángulo", pts: [[-3, -2], [4, -2], [1, 4]] },
+        { name: "Rombo", pts: [[0, 4], [3, 0], [0, -4], [-3, 0]] },
+        { name: "Pentágono (una casita)", pts: [[-3, -3], [3, -3], [3, 1], [0, 4], [-3, 1]] },
+        { name: "Trapecio", pts: [[-4, -2], [4, -2], [2, 2], [-2, 2]] }
+      ];
+      const names = shapes.map(s => s.name);
+      const out = shuffle(shapes).slice(0, 3).map(s => {
+        const labels = "ABCDE";
+        return { plane: { ...P5, points: [] }, steps: [
+          { type: "place", q: "Marcá los puntos en orden. Se van a unir con líneas.", connect: true, close: true,
+            targets: s.pts.map((p, i) => ({ x: p[0], y: p[1], label: labels[i] })), help: HELP_PLACE },
+          { type: "mc", q: "¿Qué figura se formó?", options: mkOpts(s.name, ...shuffle(names.filter(n => n !== s.name)).slice(0, 3)),
+            help: "Contá los lados de la figura. 3 lados: triángulo. 4 lados: rectángulo, rombo o trapecio. 5 lados: pentágono.",
+            solve: ["Contá cuántos lados tiene la figura.", `Tiene ${s.pts.length} lados.`, `La figura es: ${s.name}.`] }] };
+      });
+      const x1 = -rnd(1, 4), x2 = rnd(1, 4), y1 = rnd(1, 4), y2 = -rnd(1, 3), base = x2 - x1;
+      out.push({ plane: { ...P5, points: [] }, steps: [
+        { type: "place", q: "Marcá los puntos en orden para formar un rectángulo.", connect: true, close: true,
+          targets: [[x1, y1], [x2, y1], [x2, y2], [x1, y2]].map((p, i) => ({ x: p[0], y: p[1], label: "ABCD"[i] })), help: HELP_PLACE },
+        { type: "mc", q: "¿Cuántos cuadraditos mide el lado de arriba, de A hasta B?",
+          options: mkOpts(String(base), String(base + 1), String(x2), String(Math.abs(x1)), String(base - 1), String(base + 2)).filter((o, i, arr) => o.ok || arr.filter(z => !z.ok).indexOf(o) < 3),
+          help: "Contá los cuadraditos entre A y B. Cuidado al pasar por el eje vertical: no te saltees ninguno.",
+          solve: [`A está en ${fmt(x1)} y B está en ${fmt(x2)}.`, `De ${fmt(x1)} hasta 0 hay ${-x1} cuadraditos.`, `De 0 hasta ${x2} hay ${x2} cuadraditos.`, `En total: ${-x1} + ${x2} = ${base} cuadraditos.`] }] });
+      return out;
+    } },
+  { id: 6, icon: "🧃", title: "Tablas de proporcionalidad", sub: "Completar tablas (también hacia atrás)",
+    gen() {
+      const ctxs = [
+        ["Cada caja trae {k} alfajores.", "Cajas", "Alfajores"],
+        ["Cada paquete trae {k} figuritas.", "Paquetes", "Figuritas"],
+        ["Cada mesa tiene {k} sillas.", "Mesas", "Sillas"],
+        ["En cada vuelta a la plaza se caminan {k} cuadras.", "Vueltas", "Cuadras"],
+        ["Cada vagón del tren lleva {k} pasajeros sentados.", "Vagones", "Pasajeros"]
+      ];
+      return shuffle(ctxs).slice(0, 4).map((c, i) => {
+        const k = rnd(3, 9);
+        let cols;
+        if (i === 0) cols = [[1, 0, 0], [2, 0, 1], [3, 0, 1], [5, 0, 1], [10, 0, 1]];
+        else if (i === 1) cols = [[2, 0, 0], [1, 0, 1], [4, 0, 1], [6, 0, 1], [8, 0, 1]];
+        else if (i === 2) cols = [[1, 0, 0], [3, 1, 0], [5, 1, 0], [7, 0, 1], [10, 1, 0]];
+        else cols = [[1, 0, 1], [2, 0, 0], [4, 1, 0], [5, 0, 1], [9, 1, 0]];
+        const tc = cols.map(([x, hx, hy]) => ({ x, y: x * k, hx: !!hx, hy: !!hy }));
+        const given = tc.find(t => !t.hx && !t.hy);
+        return { ctx: c[0].replace("{k}", k), steps: [{ type: "table", h: [c[1], c[2]], cols: tc,
+          q: i === 2 ? "Completá la tabla. ¡Ahora algunos números faltan arriba!" : i === 3 ? "Completá la tabla. Faltan números arriba y abajo." : "Completá la tabla.",
+          help: `Es proporcionalidad directa: si una cantidad se multiplica, la otra también. Para ir de arriba hacia abajo multiplicás por ${given.x === 1 ? k : "lo que corresponde a 1"}; para ir de abajo hacia arriba, dividís.`,
+          solve: [given.x === 1 ? `Con 1 hay ${k}. Ese es el número clave.` : `Con ${given.x} hay ${given.y}. Entonces con 1 hay ${given.y} ÷ ${given.x} = ${k}.`,
+            `Para encontrar los números de abajo: multiplicá por ${k}. Ejemplo: ${tc[tc.length - 1].x} ${mul} ${k} = ${tc[tc.length - 1].y}.`,
+            `Para encontrar los números de arriba: dividí por ${k}. Ejemplo: ${tc.find(t => t.hx) ? tc.find(t => t.hx).y + " ÷ " + k + " = " + tc.find(t => t.hx).x : "no hace falta en esta tabla"}.`] }] };
+      });
+    } },
+  { id: 7, icon: "🌱", title: "Tablas con fórmula", sub: "Funciones lineales: un valor inicial y un aumento",
+    gen() {
+      const ctxs = [
+        ["Una planta mide {b} cm y crece {a} cm por semana.", "Semanas", "Altura (cm)", "altura", "semanas"],
+        ["Un álbum ya tiene {b} figuritas pegadas y Tomi pega {a} por día.", "Días", "Figuritas", "figuritas", "días"],
+        ["Una pileta tiene {b} cm de agua y sube {a} cm por hora.", "Horas", "Agua (cm)", "agua", "horas"],
+        ["El tren ya recorrió {b} km y avanza {a} km por minuto.", "Minutos", "Kilómetros", "km", "minutos"]
+      ];
+      return shuffle(ctxs).map((c, i) => {
+        const a = rnd(2, 5), b = rnd(2, 9);
+        const xs = [0, 1, 2, 4, 6];
+        let hide;
+        if (i === 0) hide = [[0, 0], [0, 1], [0, 1], [0, 1], [0, 1]];
+        else if (i === 1) hide = [[0, 0], [0, 1], [0, 0], [0, 1], [0, 1]];
+        else if (i === 2) hide = [[0, 1], [0, 0], [0, 1], [1, 0], [0, 1]];
+        else hide = [[0, 1], [0, 1], [1, 0], [0, 1], [1, 0]];
+        const cols = xs.map((x, j) => ({ x, y: a * x + b, hx: !!hide[j][0], hy: !!hide[j][1] }));
+        const formula = `${c[3]} = ${b} + ${a} ${mul} ${c[4]}`;
+        const hx = cols.find(t => t.hx);
+        return { ctx: c[0].replace("{b}", b).replace("{a}", a) + `<br>Fórmula: <span class="formula">${formula}</span>`,
+          steps: [{ type: "table", h: [c[1], c[2]], cols, q: hx ? "Completá la tabla. Algunos números faltan arriba." : "Completá la tabla usando la fórmula.",
+            help: `Primero multiplicá ${a} ${mul} el número de arriba y después sumá ${b}. Si falta el número de arriba: restá ${b} y después dividí por ${a}.`,
+            solve: [`Cuando ${c[4]} es 0: ${b} + ${a} ${mul} 0 = ${b}. ¡Es el valor inicial!`,
+              `Cuando ${c[4]} es 4: ${b} + ${a} ${mul} 4 = ${b} + ${4 * a} = ${4 * a + b}.`,
+              hx ? `Si abajo dice ${hx.y}: ${hx.y} ${MINUS} ${b} = ${hx.y - b}, y ${hx.y - b} ÷ ${a} = ${hx.x}.` : `Cuando ${c[4]} es 6: ${b} + ${a} ${mul} 6 = ${6 * a + b}.`] }] };
+      });
+    } },
+  { id: 8, icon: "🔍", title: "Descubrí la fórmula", sub: "¿Qué regla sigue la tabla?",
+    gen() {
+      const out = [];
+      const used = new Set();
+      for (let i = 0; i < 3; i++) {
+        let a, b; do { a = rnd(2, 5); b = i === 2 ? 0 : rnd(1, 6); } while (used.has(a + "," + b) || a === b);
+        used.add(a + "," + b);
+        const xs = [0, 1, 2, 3, 4];
+        const cols = xs.map(x => ({ x, y: a * x + b }));
+        const ok = rule(a, b);
+        const wrong = [rule(b === 0 ? a + 1 : b, b === 0 ? 0 : a), rule(a + b, 0), rule(a, 0), rule(1, a + b), rule(a, b + 1)];
+        const fits = (s) => s === ok;
+        const opts = mkOpts(ok, ...wrong.filter(w => !fits(w))).filter((o, k, arr) => o.ok || arr.filter(z => !z.ok).indexOf(o) < 3);
+        out.push({ steps: [{ type: "mc", q: "¿Cuál es la fórmula de esta tabla?", table: { h: ["x", "y"], cols },
+          options: opts, help: "Mirá cuánto vale y cuando x = 0: ese es el número que se suma. Después mirá cuánto aumenta y cada vez que x aumenta 1: ese es el número que multiplica a x.",
+          solve: [`Cuando x = 0, y = ${b}. Entonces se suma ${b}${b === 0 ? " (o sea, no se suma nada)" : ""}.`,
+            `Cada vez que x aumenta 1, y aumenta ${a}. Entonces x se multiplica por ${a}.`, `La fórmula es ${ok}.`,
+            `Comprobación: si x = 3, ${a} ${mul} 3 ${b ? "+ " + b + " " : ""}= ${3 * a + b}. ✔`] }] });
+      }
+      const prop = Math.random() < .5; const k = rnd(2, 6), b = prop ? 0 : rnd(1, 4);
+      const cols = [1, 2, 3, 4, 5].map(x => ({ x, y: k * x + b }));
+      out.push({ steps: [{ type: "mc", q: "¿Esta tabla es de proporcionalidad directa?", table: { h: ["x", "y"], cols },
+        options: mkOpts(prop ? "Sí, porque y ÷ x da siempre lo mismo." : "No, porque y ÷ x no da siempre lo mismo.",
+          prop ? "No, porque y ÷ x no da siempre lo mismo." : "Sí, porque y ÷ x da siempre lo mismo.", "Sí, porque los números aumentan.", "No, porque los números aumentan."),
+        help: "Dividí cada número de abajo por el de arriba. Si siempre da el mismo resultado, es proporcionalidad directa.",
+        solve: [`${cols[0].y} ÷ 1 = ${cols[0].y}.`, `${cols[1].y} ÷ 2 = ${fmtDiv(cols[1].y, 2)}.`, `${cols[3].y} ÷ 4 = ${fmtDiv(cols[3].y, 4)}.`,
+          prop ? "Siempre da lo mismo: SÍ es proporcionalidad directa." : "No da siempre lo mismo: NO es proporcionalidad directa (aunque los números aumenten)."] }] });
+      return shuffle(out.slice(0, 3)).concat(out[3]);
+    } },
+  { id: 9, icon: "📈", title: "Leer gráficos", sub: "Problemas con gráficos (¡uno baja!)",
+    gen() {
+      const C = pick([
+        { ctx: "Un tanque tiene 10 litros y se cargan 5 litros por minuto.", a: 5, b: 10, ys: 5, ymax: 40, X: "Minutos", Y: "Litros", ux: "minuto", art: "el", uy: "litros" },
+        { ctx: "Un tren sale de la estación y recorre 20 km cada hora.", a: 20, b: 0, ys: 20, ymax: 120, X: "Horas", Y: "Kilómetros", ux: "hora", art: "la", uy: "km" },
+        { ctx: "Una vela mide 12 cm y se achica 2 cm por hora.", a: -2, b: 12, ys: 2, ymax: 12, X: "Horas", Y: "Altura (cm)", ux: "hora", art: "la", uy: "cm" },
+        { ctx: "Sofía tiene $ 200 ahorrados y guarda $ 100 por semana.", a: 100, b: 200, ys: 100, ymax: 800, X: "Semanas", Y: "Pesos ($)", ux: "semana", art: "la", uy: "pesos" }
+      ]);
+      const f = x => C.a * x + C.b;
+      const al = C.art === "el" ? `al ${C.ux}` : `a la ${C.ux}`, enel = `en ${C.art} ${C.ux}`, El = cap(enel);
+      const plane = { xmin: 0, xmax: 6, ymin: 0, ymax: C.ymax, ys: C.ys, xLabel: C.X, yLabel: C.Y, line: { a: C.a, b: C.b }, dotsOnLine: true };
+      const x1 = pick([2, 3, 4]); const x2 = pick([1, 5].concat(x1 === 3 ? [] : [3]).filter(v => v !== x1));
+      const ex = [];
+      ex.push({ q: `¿Cuánto marca el gráfico ${al} ${x1}?`, ok: f(x1), w: [f(x1 + 1), f(x1 - 1), x1],
+        help: `Buscá el ${x1} en el eje horizontal. Andá derecho hacia arriba hasta tocar la línea. Después mirá a la izquierda qué número marca.`,
+        solve: [`Buscá ${x1} en el eje de las ${C.X.toLowerCase()}.`, "Andá derecho hacia arriba hasta tocar la línea.", `Mirá hacia la izquierda: marca ${f(x1)} ${C.uy}.`] });
+      ex.push({ q: `¿En qué ${C.ux} el gráfico marca ${f(x2)} ${C.uy}?`, ok: x2, w: [x2 + 1, x2 - 1, f(x2)].filter(v => v >= 0),
+        help: `Ahora es al revés: buscá ${f(x2)} en el eje vertical, andá derecho hacia la derecha hasta la línea y después bajá hasta el eje horizontal.`,
+        solve: [`Buscá ${f(x2)} en el eje vertical.`, "Andá hacia la derecha hasta tocar la línea.", `Andá derecho hacia abajo: llegás al ${x2}.`] });
+      ex.push({ q: `¿Cuánto había al comienzo, ${enel} 0?`, ok: C.b, w: [C.b + C.ys, Math.abs(C.a), C.b === 0 ? C.ys * 2 : 0],
+        help: "El comienzo es cuando el tiempo vale 0. Mirá dónde empieza la línea, sobre el eje vertical.",
+        solve: ["El comienzo es la posición 0 del eje horizontal.", `La línea empieza sobre el eje vertical en ${C.b}.`, `Al comienzo había ${C.b} ${C.uy}.`] });
+      ex.push({ q: C.a > 0 ? `¿Cuánto aumenta en cada ${C.ux}?` : `¿Cuánto se achica en cada ${C.ux}?`, ok: Math.abs(C.a), w: [Math.abs(C.a) * 2, f(1), C.b, Math.abs(C.a) * 3],
+        help: "Mirá dos puntos seguidos de la línea, por ejemplo en 1 y en 2. ¿Cuánto cambió de uno al otro?",
+        solve: [`${El} 1 marca ${f(1)}.`, `${El} 2 marca ${f(2)}.`, `${C.a > 0 ? "Aumentó" : "Bajó"} ${Math.abs(C.a)} ${C.uy} en ${C.art === "el" ? "un" : "una"} ${C.ux}.`] });
+      if (C.a < 0) ex[3].q = `¿Cuánto se achica la vela en cada hora?`;
+      return ex.map(e => ({ ctx: C.ctx, plane, steps: [{ type: "mc", q: e.q, options: mkOpts(String(e.ok), ...e.w.map(String)).filter((o, k, arr) => o.ok || arr.filter(z => !z.ok).indexOf(o) < 3), help: e.help, solve: e.solve }] }));
+    } },
+  { id: 10, icon: "🏁", title: "Graficar una recta", sub: "De la tabla al gráfico (con negativos)",
+    gen() {
+      const rules = shuffle([[1, 1], [1, 2], [2, 1], [2, 0], [1, -1], [2, -1], [1, 3], [2, 2]]);
+      const PL = { xmin: -4, xmax: 4, ymin: -5, ymax: 7 };
+      const out = [];
+      for (let i = 0; i < 2; i++) {
+        const [a, b] = rules[i];
+        const xs = [-2, -1, 0, 1, 2];
+        const cols = xs.map(x => ({ x, y: a * x + b, hx: false, hy: x !== 0 && x !== -2 ? true : i === 1 }));
+        out.push({ ctx: `Fórmula: <span class="formula">${rule(a, b)}</span>`, plane: { ...PL, points: [] }, steps: [
+          { type: "table", h: ["x", "y"], cols, q: "Paso 1: completá la tabla con la fórmula.",
+            help: `Reemplazá x por cada número. Ojo con los negativos: ${a} ${mul} (${MINUS}2) = ${fmt(-2 * a)}.`,
+            solve: [`Si x = ${MINUS}2: ${a === 1 ? "" : a + " " + mul + " "}(${MINUS}2)${b ? (b > 0 ? " + " + b : " " + MINUS + " " + (-b)) : ""} = ${fmt(-2 * a + b)}.`,
+              `Si x = 0: y = ${fmt(b)}.`, `Si x = 2: ${a === 1 ? "" : a + " " + mul + " "}2${b ? (b > 0 ? " + " + b : " " + MINUS + " " + (-b)) : ""} = ${fmt(2 * a + b)}.`] },
+          { type: "place", q: "Paso 2: marcá los puntos de la tabla en el plano.", drawLine: { a, b },
+            targets: cols.map((c, k) => ({ x: c.x, y: c.y, label: "" })), help: "Cada columna de la tabla es un punto (x ; y). " + HELP_PLACE },
+          { type: "mc", q: "Paso 3: ¿en qué punto la recta corta al eje vertical?", options: mkOpts(co(0, b), ...[co(b, 0), co(0, a + b), co(0, b + 1), co(0, b - 1), co(1, b)].filter(t => t !== co(0, b))).filter((o, k, arr) => o.ok || arr.filter(z => !z.ok).indexOf(o) < 3),
+            help: "El eje vertical es donde x = 0. Buscá en la tabla cuánto vale y cuando x es 0.",
+            solve: ["Sobre el eje vertical, x siempre vale 0.", `En la tabla, cuando x = 0, y = ${fmt(b)}.`, `La recta corta al eje vertical en ${co(0, b)}.`] }] });
+      }
+      const [a3, b3] = rules[2];
+      const cands = [[1, a3 + b3], [2, 2 * a3 + b3], [-1, -a3 + b3]].filter(p => p[1] >= -5 && p[1] <= 7);
+      const p = pick(cands);
+      out.push({ plane: { ...PL, points: [], line: { a: a3, b: b3 }, dotsOnLine: false }, steps: [{ type: "mc", q: "¿Cuál de estos puntos está sobre la recta dibujada?",
+        options: mkOpts(co(p[0], p[1]), ...shuffle([[p[1], p[0]], [p[0], p[1] + 2], [p[0], p[1] - 1], [p[0] + 1, p[1]], [-p[0], p[1]], [p[0], -p[1]]])
+          .filter(q => a3 * q[0] + b3 !== q[1]).map(q => co(q[0], q[1]))).filter((o, k, arr) => o.ok || arr.filter(z => !z.ok).indexOf(o) < 3),
+        help: "Ubicá cada punto con el dedo: x hacia los costados, y hacia arriba o abajo. ¿Cuál cae justo sobre la línea?", solve: walkSolve(p[0], p[1]).concat(["Ese punto cae justo sobre la recta. ✔"]), walk: p }] });
+      const [a4, b4] = rules[3];
+      out.push({ plane: { ...PL, points: [], line: { a: a4, b: b4 }, dotsOnLine: true }, steps: [{ type: "mc", q: "¿Cuál es la fórmula de esta recta?",
+        options: mkOpts(rule(a4, b4), rule(a4 === 1 ? 2 : 1, b4), rule(a4, b4 + 1), rule(a4, -b4 || 3)).filter((o, k, arr) => o.ok || arr.filter(z => !z.ok).indexOf(o) < 3),
+        help: "Mirá dónde corta al eje vertical: ese número se suma (o se resta). Después mirá cuántos lugares va hacia arriba la recta cada vez que vas 1 hacia la derecha.",
+        solve: [`La recta corta al eje vertical en ${fmt(b4)}.`, `Cada vez que vas 1 hacia la derecha, la recta va ${a4} hacia arriba.`, `La fórmula es ${rule(a4, b4)}.`] }] });
+      return out;
+    } }
+];
+function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+function fmtDiv(a, b) { return a % b === 0 ? String(a / b) : (a / b).toFixed(1).replace(".", ","); }
+
+/* ---------- 3) DIBUJO DEL PLANO (SVG) ---------- */
+function planeGeom(cfg) {
+  const xs = cfg.xs || 1, ys = cfg.ys || 1;
+  const nx = (cfg.xmax - cfg.xmin) / xs, ny = (cfg.ymax - cfg.ymin) / ys;
+  const cell = Math.min(46, 440 / Math.max(nx, ny));
+  const ml = cfg.yLabel ? 64 : 34, mr = 24, mt = cfg.yLabel ? 34 : 20, mb = cfg.xLabel ? 54 : 34;
+  return { xs, ys, nx, ny, cell, ml, mr, mt, mb, W: ml + mr + nx * cell, H: mt + mb + ny * cell,
+    px: x => ml + (x - cfg.xmin) / xs * cell, py: y => mt + (cfg.ymax - y) / ys * cell };
+}
+function planeSVG(cfg, opts = {}) {
+  const g = planeGeom(cfg); const { px, py } = g;
+  let s = `<svg viewBox="0 0 ${g.W} ${g.H}" role="img" aria-label="Plano cartesiano" xmlns="http://www.w3.org/2000/svg">`;
+  s += `<defs><clipPath id="clipP"><rect x="${px(cfg.xmin)}" y="${py(cfg.ymax)}" width="${g.nx * g.cell}" height="${g.ny * g.cell}"/></clipPath>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="14" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--axis)"/></marker><marker id="arrW" viewBox="0 0 10 10" refX="6" refY="5" markerUnits="userSpaceOnUse" markerWidth="18" markerHeight="18" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--ink)"/></marker></defs>`;
+  s += `<rect x="${px(cfg.xmin)}" y="${py(cfg.ymax)}" width="${g.nx * g.cell}" height="${g.ny * g.cell}" fill="var(--surface)"/>`;
+  for (let i = 0; i <= g.nx; i++) { const x = px(cfg.xmin + i * g.xs); s += `<line x1="${x}" y1="${py(cfg.ymax)}" x2="${x}" y2="${py(cfg.ymin)}" stroke="var(--grid)" stroke-width="1.2"/>`; }
+  for (let j = 0; j <= g.ny; j++) { const y = py(cfg.ymin + j * g.ys); s += `<line x1="${px(cfg.xmin)}" y1="${y}" x2="${px(cfg.xmax)}" y2="${y}" stroke="var(--grid)" stroke-width="1.2"/>`; }
+  const ax = Math.max(cfg.xmin, Math.min(0, cfg.xmax)), ay = Math.max(cfg.ymin, Math.min(0, cfg.ymax));
+  s += `<line x1="${px(cfg.xmin) - (cfg.xmin < 0 ? 10 : 0)}" y1="${py(ay)}" x2="${px(cfg.xmax) + 14}" y2="${py(ay)}" stroke="var(--axis)" stroke-width="2.4" marker-end="url(#arr)" ${cfg.xmin < 0 ? 'marker-start="url(#arr)"' : ""}/>`;
+  s += `<line x1="${px(ax)}" y1="${py(cfg.ymin) + (cfg.ymin < 0 ? 10 : 0)}" x2="${px(ax)}" y2="${py(cfg.ymax) - 14}" stroke="var(--axis)" stroke-width="2.4" marker-end="url(#arr)" ${cfg.ymin < 0 ? 'marker-start="url(#arr)"' : ""}/>`;
+  const fs = Math.max(12, Math.min(15, g.cell * .36));
+  for (let i = 0; i <= g.nx; i++) { const v = cfg.xmin + i * g.xs; if (v === 0 && cfg.ymin < 0) continue;
+    s += `<text x="${px(v)}" y="${py(ay) + fs + 5}" text-anchor="middle" font-size="${fs}" fill="var(--ink)" font-weight="700" font-family="Atkinson Hyperlegible,Verdana,sans-serif">${fmt(v)}</text>`; }
+  for (let j = 0; j <= g.ny; j++) { const v = cfg.ymin + j * g.ys; if (v === 0) continue;
+    s += `<text x="${px(ax) - 6}" y="${py(v) + fs * .35}" text-anchor="end" font-size="${fs}" fill="var(--ink)" font-weight="700" font-family="Atkinson Hyperlegible,Verdana,sans-serif">${fmt(v)}</text>`; }
+  if (cfg.ymin < 0 || cfg.xmin < 0) s += `<text x="${px(0) - 6}" y="${py(0) + fs + 4}" text-anchor="end" font-size="${fs}" fill="var(--ink)" font-weight="700">0</text>`;
+  if (cfg.xLabel) s += `<text x="${(px(cfg.xmin) + px(cfg.xmax)) / 2}" y="${g.H - 10}" text-anchor="middle" font-size="15" fill="var(--blue)" font-weight="700" font-family="Fredoka,sans-serif">${cfg.xLabel} →</text>`;
+  if (cfg.yLabel) s += `<text x="${px(cfg.xmin)}" y="${py(cfg.ymax) - 18}" text-anchor="start" font-size="15" fill="var(--blue)" font-weight="700" font-family="Fredoka,sans-serif">↑ ${cfg.yLabel}</text>`;
+  if (cfg.xmin < 0 && cfg.ymin < 0 && opts.quadrants) {
+    [["1.º", 1, 1], ["2.º", -1, 1], ["3.º", -1, -1], ["4.º", 1, -1]].forEach(([t, sx, sy]) => {
+      s += `<text x="${px(sx * (cfg.xmax - .6))}" y="${py(sy * (cfg.ymax - .6)) + 5}" text-anchor="middle" font-size="12" fill="var(--ink-soft)">${t}</text>`; });
+  }
+  // recta
+  const ln = opts.line || cfg.line;
+  if (ln) {
+    s += `<g clip-path="url(#clipP)"><line x1="${px(cfg.xmin)}" y1="${py(ln.a * cfg.xmin + ln.b)}" x2="${px(cfg.xmax)}" y2="${py(ln.a * cfg.xmax + ln.b)}" stroke="var(--line)" stroke-width="4" stroke-linecap="round" class="fade"/></g>`;
+    if (cfg.dotsOnLine) for (let x = Math.ceil(cfg.xmin); x <= cfg.xmax; x++) { const y = ln.a * x + ln.b; if (y >= cfg.ymin && y <= cfg.ymax) s += `<circle cx="${px(x)}" cy="${py(y)}" r="5" fill="var(--line)"/>`; }
+  }
+  // camino animado (para "cómo se resuelve")
+  if (opts.walk) {
+    const [wx, wy, stage] = opts.walk;
+    if (stage >= 1) s += `<circle cx="${px(0)}" cy="${py(0)}" r="8" fill="var(--signal)" stroke="var(--axis)" stroke-width="2"/>`;
+    if (stage >= 2 && wx !== 0) s += `<line x1="${px(0)}" y1="${py(0)}" x2="${px(wx)}" y2="${py(0)}" stroke="var(--signal)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrW)"/>`;
+    if (stage >= 3 && wy !== 0) s += `<line x1="${px(wx)}" y1="${py(0)}" x2="${px(wx)}" y2="${py(wy)}" stroke="var(--ok)" stroke-width="6" stroke-linecap="round" marker-end="url(#arrW)"/>`;
+    if (stage >= 4) s += `<circle cx="${px(wx)}" cy="${py(wy)}" r="10" fill="var(--ok)" stroke="var(--surface)" stroke-width="3"/>`;
+  }
+  // segmentos entre puntos colocados
+  const pts = opts.points || [];
+  if (opts.connect && pts.length > 1) {
+    const d = pts.map((p, i) => `${i ? "L" : "M"}${px(p.x)},${py(p.y)}`).join(" ") + (opts.closed ? " Z" : "");
+    s += `<path d="${d}" fill="${opts.closed ? "var(--blue-soft)" : "none"}" fill-opacity=".7" stroke="var(--blue)" stroke-width="3.5" stroke-linejoin="round"/>`;
+  }
+  pts.forEach(p => {
+    s += `<circle cx="${px(p.x)}" cy="${py(p.y)}" r="8" fill="${p.color || "var(--pt-a)"}" stroke="var(--surface)" stroke-width="2.5" class="pop"/>`;
+    if (p.label !== undefined && p.label !== "") s += `<text x="${px(p.x) + 10}" y="${py(p.y) - 10}" font-size="18" font-weight="700" fill="var(--ink)" stroke="var(--surface)" stroke-width="4" paint-order="stroke" font-family="Fredoka,sans-serif">${p.label}</text>`;
+  });
+  if (opts.interactive) s += `<circle id="ghost" r="9" fill="var(--pt-ghost)" cx="-50" cy="-50"/><rect id="hit" x="${px(cfg.xmin) - g.cell / 2}" y="${py(cfg.ymax) - g.cell / 2}" width="${(g.nx + 1) * g.cell}" height="${(g.ny + 1) * g.cell}" fill="transparent" style="cursor:crosshair"/>`;
+  return s + "</svg>";
+}
+function svgPointToData(svg, cfg, evt) {
+  const g = planeGeom(cfg); const pt = svg.createSVGPoint(); pt.x = evt.clientX; pt.y = evt.clientY;
+  const m = svg.getScreenCTM(); if (!m) return null; const p = pt.matrixTransform(m.inverse());
+  const x = Math.round((p.x - g.ml) / g.cell) * g.xs + cfg.xmin, y = cfg.ymax - Math.round((p.y - g.mt) / g.cell) * g.ys;
+  if (x < cfg.xmin || x > cfg.xmax || y < cfg.ymin || y > cfg.ymax) return null;
+  return { x, y, sx: g.px(x), sy: g.py(y) };
+}
+
+/* ---------- 4) INTERFAZ ---------- */
+const app = typeof document !== "undefined" ? document.getElementById("app") : null;
+const KEY = "viajePlano2_718_v1";
+let S = { name: "", st: {}, obs: "", font: 18, voice: true, calm: false };
+let cur = null; // estación en curso
+const PRAISE = ["¡Muy bien! 🎉", "¡Excelente trabajo!", "¡Bien pensado!", "¡Sos un gran viajero!", "¡Perfecto! Seguimos.", "¡Lo lograste!", "¡Qué buena puntería!"];
+const RETRY = ["Casi. Probá otra vez 🙂", "No pasa nada, intentá de nuevo.", "Mirá la ayuda y volvé a probar."];
+const inIframe = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+
+function stOf(id) { if (!S.st[id]) S.st[id] = { done: false, att: 0, err: 0, ms: 0, feel: "", errTypes: {}, best: 0 }; return S.st[id]; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+function load() { try { const v = JSON.parse(localStorage.getItem(KEY) || "null"); if (v) S = Object.assign(S, v); } catch (e) {} }
+function allDone() { return STATIONS.every(s => stOf(s.id).done); }
+function esc(t) { return String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function screenHome() {
+  stopWalk();
+  const has = !!S.name;
+  app.innerHTML = `
+  <section class="card">
+    <div class="hero">
+      <div>
+        <span class="badge">Nivel 2 · Explorador</span>
+        <h1>Viaje por el Plano 2</h1>
+        <p>Un nuevo viaje en tren por <b>10 estaciones</b>. Ahora el plano crece: aparecen los <b>números negativos</b>, las tablas con fórmula y los gráficos que suben y bajan.</p>
+      </div>
+      <img src="${LOGO_SRC}" alt="">
+    </div>
+    <div class="rules">
+      <div class="rule"><b>1.º número → ←</b><br>Positivo: vas hacia la <b>derecha</b>.<br>Negativo: vas hacia la <b>izquierda</b>.</div>
+      <div class="rule"><b>2.º número ↑ ↓</b><br>Positivo: vas hacia <b>arriba</b>.<br>Negativo: vas hacia <b>abajo</b>.</div>
+    </div>
+    <div class="ex">Ejemplo: <b>(${MINUS}3 ; 2)</b> → vas 3 hacia la izquierda y 2 hacia arriba.</div>
+    <p class="muted small">No hay tiempo. Si te equivocás, podés volver a intentar. Podés empezar por la estación que quieras, pero el <b>diploma</b> se entrega cuando completás <b>las 10</b>. 🏅</p>
+    <div class="row" style="margin-top:10px">
+      <label for="nm"><b>✏️ Escribí tu nombre:</b></label>
+      <input type="text" id="nm" maxlength="40" value="${esc(S.name)}" placeholder="Nombre y apellido" style="flex:1;min-width:200px">
+    </div>
+    <div class="actions">
+      <button class="btn sig" id="go">🚂 ${has ? "Continuar el viaje" : "Empezar el viaje"}</button>
+      <button class="btn alt" id="demo">👀 Mirá un ejemplo resuelto</button>
+    </div>
+  </section>`;
+  app.querySelector("#go").onclick = () => { const n = app.querySelector("#nm").value.trim(); if (!n) { app.querySelector("#nm").focus(); app.querySelector("#nm").classList.add("shake"); setTimeout(() => app.querySelector("#nm") && app.querySelector("#nm").classList.remove("shake"), 400); say("Escribí tu nombre para empezar."); return; } S.name = n; save(); beep("start"); screenMap(); };
+  app.querySelector("#demo").onclick = () => openSolve(walkSolve(-3, 2), [-3, 2], P5, "Ejemplo: ubicar el punto (−3 ; 2)");
+}
+
+function screenMap() {
+  stopWalk();
+  const doneN = STATIONS.filter(s => stOf(s.id).done).length;
+  const miss = STATIONS.filter(s => !stOf(s.id).done).map(s => s.id);
+  app.innerHTML = `
+  <section class="card">
+    <h2>🗺️ Mapa del viaje</h2>
+    <p class="muted">Hola, <b>${esc(S.name || "viajero")}</b>. Elegí cualquier estación. Las que terminás quedan en verde.</p>
+    <div class="meter" aria-label="Avance"><i style="width:${doneN * 10}%"></i></div>
+    <p class="small"><b>${doneN} de 10</b> estaciones completas.</p>
+    <div class="track">${STATIONS.map(s => { const t = stOf(s.id); const cls = t.done ? "done" : t.att ? "prog" : "";
+      return `<button class="stop ${cls}" data-id="${s.id}"><span class="n">${s.id} <span aria-hidden="true">${s.icon}</span></span><span class="t"><b>${s.title}</b></span><span class="t muted">${s.sub}</span><span class="st">${t.done ? "✔ Completa" : t.att ? "En camino" : "Sin empezar"}</span></button>`; }).join("")}</div>
+    <div class="actions">
+      <button class="btn ${allDone() ? "ok" : "alt"}" id="dip" ${allDone() ? "" : 'aria-disabled="true"'}>🏅 Ver mi diploma</button>
+      <button class="btn alt" id="home">↩️ Volver al inicio</button>
+    </div>
+    <p class="small muted" id="dipmsg">${allDone() ? "¡Completaste las 10 estaciones! Ya podés ver tu diploma." : "Para el diploma te faltan las estaciones: <b>" + miss.join(", ") + "</b>."}</p>
+  </section>`;
+  app.querySelectorAll(".stop").forEach(b => b.onclick = () => startStation(+b.dataset.id));
+  app.querySelector("#dip").onclick = () => { if (allDone()) screenDiploma(); else { say("Todavía te faltan estaciones para el diploma."); const m = app.querySelector("#dipmsg"); m.classList.add("shake"); setTimeout(() => m.classList.remove("shake"), 400); } };
+  app.querySelector("#home").onclick = screenHome;
+}
+
+function startStation(id) {
+  const st = STATIONS.find(s => s.id === id);
+  cur = { st, ex: st.gen(), i: 0, step: 0, placed: [], placedStep: 0, stepDone: false, connect: null, drawnLine: null, errStep: 0, t0: Date.now(), errors: 0 };
+  stOf(id).att++; save();
+  renderExercise();
+}
+
+function renderExercise() {
+  stopWalk();
+  const { st, ex, i } = cur; const e = ex[i]; const step = e.steps[cur.step];
+  const dots = ex.map((_, k) => `<span class="${k < i ? "ok" : k === i ? "on" : ""}">${k + 1}</span>`).join("");
+  const stepInfo = e.steps.length > 1 ? `<span class="small muted">Parte ${cur.step + 1} de ${e.steps.length}</span>` : "";
+  let left = "", right = "";
+  const planeCfg = e.plane ? Object.assign({}, e.plane) : null;
+  if (planeCfg && cur.drawnLine) planeCfg.line = cur.drawnLine;
+  const showPts = (e.plane && e.plane.points ? e.plane.points.map(p => ({ ...p, label: p.label })) : []).concat(cur.placed);
+  const connectInfo = cur.connect || {};
+  if (planeCfg) left = `<div class="planebox" id="pbox">${planeSVG(planeCfg, { points: showPts, interactive: step.type === "place" && !cur.stepDone, connect: connectInfo.on, closed: connectInfo.closed, quadrants: st.id === 3 || st.id === 4 })}</div>`;
+  if (step.type === "mc") {
+    const tbl = step.table ? tableHTML(step.table.h, step.table.cols, false) : "";
+    right = `${tbl}<div class="opts" id="opts">${step.options.map((o, k) => `<button class="opt" data-k="${k}">${o.t}</button>`).join("")}</div>`;
+  } else if (step.type === "place") {
+    right = `<p class="small muted">Tocá el cruce de las líneas donde va cada punto.</p><div class="targets">${step.targets.map((t, k) => `<span class="tg ${k < cur.placedStep ? "done" : k === cur.placedStep ? "now" : ""}">${t.label ? t.label + " " : ""}${co(t.x, t.y)}</span>`).join("")}</div>`;
+  } else if (step.type === "table") {
+    right = `<div class="tblwrap">${tableHTML(step.h, step.cols, true)}</div><div class="actions"><button class="btn" id="chk">✔ Revisar la tabla</button></div>`;
+  }
+  const single = !planeCfg;
+  app.innerHTML = `
+  <div class="sthead">
+    <div><div class="lbl">Estación ${st.id} de 10 · ${st.icon}</div><h2>${st.title}</h2></div>
+    <div class="dots" aria-label="Ejercicio ${i + 1} de ${ex.length}">${dots}</div>
+  </div>
+  <section class="card">
+    ${e.ctx ? `<div class="ctx">${e.ctx}</div>` : ""}
+    <div class="q"><button class="say" id="sayq" aria-label="Escuchar la consigna">🔊</button><span>${step.q} ${stepInfo}</span></div>
+    <div class="stage ${single ? "single" : ""}">${left}<div style="min-width:0">${right}</div></div>
+    <div class="fb" id="fb" role="status" aria-live="polite"></div>
+    <div class="help" id="help">💡 ${step.help}</div>
+    <div class="actions">
+      <button class="btn alt" id="bHelp">💡 Ver la ayuda</button>
+      <button class="btn alt" id="bSolve">🎬 Ver cómo se resuelve</button>
+      <button class="btn alt" id="bMap">🗺️ Mapa</button>
+      <button class="btn sig" id="bNext" hidden>➡️ Siguiente</button>
+    </div>
+  </section>`;
+  app.querySelector("#sayq").onclick = () => say(stripHTML((e.ctx ? e.ctx + ". " : "") + step.q + (step.type === "place" ? ". Puntos: " + step.targets.map(t => co(t.x, t.y)).join(", ") : "")), true);
+  app.querySelector("#bHelp").onclick = () => { app.querySelector("#help").classList.add("show"); say(step.help, true); };
+  app.querySelector("#bSolve").onclick = () => {
+    if (step.type === "place") { const t = step.targets[Math.min(cur.placedStep, step.targets.length - 1)]; openSolve(walkSolve(t.x, t.y), [t.x, t.y], e.plane, "Cómo se ubica " + co(t.x, t.y)); }
+    else openSolve(step.solve || [step.help], step.walk || null, step.walk ? (e.plane || P5) : null, "Cómo se resuelve");
+  };
+  app.querySelector("#bMap").onclick = screenMap;
+  app.querySelector("#bNext").onclick = nextStep;
+  if (step.type === "mc") app.querySelectorAll(".opt").forEach(b => b.onclick = () => answerMC(b, step));
+  if (step.type === "table") { app.querySelector("#chk").onclick = () => checkTable(step); app.querySelectorAll("table.vt input").forEach(inp => inp.addEventListener("keydown", ev => { if (ev.key === "Enter") checkTable(step); })); }
+  if (step.type === "place" && !cur.stepDone) bindPlane(planeCfg, step);
+  if (cur.stepDone) app.querySelector("#bNext").hidden = false;
+}
+function stripHTML(h) { const d = document.createElement("div"); d.innerHTML = h; return d.textContent.replace(/−/g, "menos ").replace(/×/g, " por ").replace(/;/g, ","); }
+function tableHTML(h, cols, edit) {
+  const cell = (v, hide, k, which) => hide && edit ? `<td><input type="text" ${v >= 0 ? 'inputmode="numeric"' : ""} autocomplete="off" id="c${which}${k}" data-ans="${v}" aria-label="Valor que falta"></td>` : `<td>${hide ? "?" : fmt(v)}</td>`;
+  return `<table class="vt"><tr><th>${h[0]}</th>${cols.map((c, k) => cell(c.x, c.hx, k, "x")).join("")}</tr><tr><th>${h[1]}</th>${cols.map((c, k) => cell(c.y, c.hy, k, "y")).join("")}</tr></table>`;
+}
+function feedback(kind, text) {
+  const fb = app.querySelector("#fb"); fb.className = "fb show pop " + kind;
+  fb.innerHTML = `<span class="face">${kind === "good" ? "😊" : kind === "bad" ? "🤔" : "💡"}</span><span>${text}</span>`;
+}
+function stepOK(msg) {
+  cur.stepDone = true; cur.errStep = 0;
+  const e = cur.ex[cur.i]; const last = cur.step === e.steps.length - 1;
+  const p = pick(PRAISE);
+  feedback("good", `<b>${p}</b>${msg ? " " + msg : ""}${last ? "" : " Ahora la parte siguiente."}`);
+  beep("ok"); say(p.replace(/[^\p{L}\p{N}\s!¡.,]/gu, ""));
+  const n = app.querySelector("#bNext"); n.hidden = false; n.focus();
+}
+function stepBad(msg, type) {
+  cur.errors++; cur.errStep++; const t = stOf(cur.st.id); t.err++; if (type) t.errTypes[type] = (t.errTypes[type] || 0) + 1; save();
+  feedback("bad", `${msg || pick(RETRY)}${cur.errStep >= 2 ? " <b>Mirá la ayuda de abajo.</b>" : ""}`);
+  if (cur.errStep >= 2) app.querySelector("#help").classList.add("show");
+  beep("bad"); say(stripHTML(msg || "Probá otra vez"));
+}
+function answerMC(btn, step) {
+  if (cur.stepDone) return;
+  const o = step.options[+btn.dataset.k];
+  if (o.ok) { btn.classList.add("good"); app.querySelectorAll(".opt").forEach(b => b.disabled = true); stepOK(""); }
+  else { btn.classList.add("bad", "shake"); btn.disabled = true; stepBad(pick(RETRY), "opción"); }
+}
+function checkTable(step) {
+  if (cur.stepDone) return;
+  const inps = [...app.querySelectorAll("table.vt input")]; let bad = 0, empty = 0;
+  inps.forEach(inp => { const v = inp.value.replace(",", ".").replace(/[−–—]/g, "-").replace(/\s/g, "");
+    if (v === "") { empty++; inp.classList.remove("good", "bad"); return; }
+    if (Number(v) === Number(inp.dataset.ans)) { inp.classList.add("good"); inp.classList.remove("bad"); inp.readOnly = true; } else { inp.classList.add("bad"); inp.classList.remove("good"); bad++; } });
+  if (empty && !bad) { feedback("info", `Te faltan completar ${empty} casillero${empty > 1 ? "s" : ""}.`); return; }
+  if (bad || empty) { stepBad(`Hay ${bad} número${bad > 1 ? "s" : ""} para revisar (en color). Los verdes ya están bien.`, "tabla"); const f = app.querySelector("table.vt input.bad"); if (f) f.focus(); }
+  else stepOK("La tabla está completa.");
+}
+function bindPlane(cfg, step) {
+  const box = app.querySelector("#pbox"); const svg = box.querySelector("svg"); const ghost = svg.querySelector("#ghost");
+  svg.addEventListener("pointermove", ev => { const p = svgPointToData(svg, cfg, ev); if (p) { ghost.setAttribute("cx", p.sx); ghost.setAttribute("cy", p.sy); } });
+  svg.addEventListener("pointerleave", () => { ghost.setAttribute("cx", -50); });
+  svg.addEventListener("click", ev => {
+    const p = svgPointToData(svg, cfg, ev); if (!p) return;
+    const t = step.targets[cur.placedStep];
+    if (p.x === t.x && p.y === t.y) {
+      cur.placed.push({ x: t.x, y: t.y, label: t.label || "" }); cur.placedStep++;
+      if (step.connect) cur.connect = { on: true, closed: false };
+      if (cur.placedStep >= step.targets.length) {
+        if (step.connect && step.close) cur.connect.closed = true;
+        if (step.drawLine) cur.drawnLine = step.drawLine;
+        cur.stepDone = true; renderExercise();
+        stepOK(step.drawLine ? "¡Mirá! Los puntos quedaron alineados y forman una recta." : step.connect ? "¡Se formó la figura!" : "");
+      } else { beep("tick"); renderExercise(); feedback("good", `✔ ${t.label ? t.label + " " : ""}${co(t.x, t.y)} bien ubicado. Ahora el siguiente.`); }
+    } else {
+      let msg, type;
+      if (p.x === t.y && p.y === t.x) { msg = `Marcaste ${co(p.x, p.y)}. ¡Ojo con el orden! Primero va el movimiento hacia los costados (→ ←) y después hacia arriba o abajo (↑ ↓).`; type = "orden"; }
+      else if ((p.x === -t.x && t.x !== 0 && p.y === t.y) || (p.y === -t.y && t.y !== 0 && p.x === t.x) || (p.x === -t.x && p.y === -t.y)) { msg = `Marcaste ${co(p.x, p.y)}. Revisá el signo: el negativo te lleva hacia la izquierda o hacia abajo.`; type = "signo"; }
+      else if (p.x === t.x) { msg = `Marcaste ${co(p.x, p.y)}. El 1.º número está bien. Revisá cuánto vas hacia arriba o hacia abajo.`; type = "conteo"; }
+      else if (p.y === t.y) { msg = `Marcaste ${co(p.x, p.y)}. El 2.º número está bien. Revisá cuánto vas hacia los costados.`; type = "conteo"; }
+      else { msg = `Marcaste ${co(p.x, p.y)}. Buscamos ${co(t.x, t.y)}. Empezá desde el (0 ; 0).`; type = "conteo"; }
+      stepBad(msg, type);
+    }
+  });
+}
+function nextStep() {
+  if (!cur || !cur.stepDone) return; // no se puede avanzar sin resolver
+  const e = cur.ex[cur.i];
+  if (cur.step < e.steps.length - 1) { cur.step++; cur.stepDone = false; cur.placedStep = 0; if (e.steps[cur.step].type === "place" && !e.steps[cur.step].connect) { /* nuevo paso de marcar: conserva lo anterior */ } renderExercise(); return; }
+  cur.i++; cur.step = 0; cur.stepDone = false; cur.placed = []; cur.placedStep = 0; cur.connect = null; cur.drawnLine = null; cur.errStep = 0;
+  if (cur.i >= cur.ex.length) return finishStation();
+  renderExercise();
+}
+function finishStation() {
+  const t = stOf(cur.st.id); const first = !t.done; t.done = true; t.ms += Date.now() - cur.t0; t.lastErr = cur.errors; save();
+  beep("win"); confetti(); say(`¡Estación ${cur.st.id} completa! ${allDone() ? "¡Completaste todo el viaje!" : ""}`);
+  const miss = STATIONS.filter(s => !stOf(s.id).done).map(s => s.id);
+  const nextId = miss.find(id => id > cur.st.id) || miss[0];
+  app.innerHTML = `
+  <section class="card" style="text-align:center">
+    <div style="font-size:3.5rem" class="pop">🏅</div>
+    <h2>¡Estación ${cur.st.id} completa!</h2>
+    <p>${esc(S.name)}, terminaste <b>${cur.st.title}</b>${cur.errors === 0 ? " sin ningún error. ¡Impecable!" : "."}</p>
+    <p><b>¿Cómo te fue en esta estación?</b></p>
+    <div class="row" style="justify-content:center" id="feel">
+      <button class="btn alt" data-f="🙂">🙂 Me salió bien</button><button class="btn alt" data-f="😐">😐 Más o menos</button><button class="btn alt" data-f="😕">😕 Me costó</button>
+    </div>
+    <div class="actions" style="justify-content:center">
+      ${allDone() ? `<button class="btn ok" id="dip">🏅 Ver mi diploma</button>` : nextId ? `<button class="btn sig" id="nx">🚂 Seguir a la estación ${nextId}</button>` : ""}
+      <button class="btn alt" id="again">🔄 Practicar más esta estación</button>
+      <button class="btn alt" id="mp">🗺️ Ver el mapa</button>
+    </div>
+    ${!allDone() ? `<p class="small muted">Para el diploma te faltan: ${miss.join(", ")}.</p>` : ""}
+  </section>`;
+  app.querySelectorAll("#feel button").forEach(b => b.onclick = () => { t.feel = b.dataset.f; save(); app.querySelectorAll("#feel button").forEach(x => x.setAttribute("aria-pressed", x === b)); b.classList.remove("alt"); });
+  const nx = app.querySelector("#nx"); if (nx) nx.onclick = () => startStation(nextId);
+  const dp = app.querySelector("#dip"); if (dp) dp.onclick = screenDiploma;
+  app.querySelector("#again").onclick = () => startStation(cur.st.id);
+  app.querySelector("#mp").onclick = screenMap;
+}
+
+/* ---------- Modal "Cómo se resuelve" con animación del camino ---------- */
+let walkTimer = null;
+function stopWalk() { if (walkTimer) clearInterval(walkTimer); walkTimer = null; }
+function openSolve(lines, walk, plane, title) {
+  const m = document.createElement("div"); m.className = "modal"; m.setAttribute("role", "dialog"); m.setAttribute("aria-modal", "true");
+  let k = 0;
+  const draw = () => {
+    m.innerHTML = `<div class="card"><h2>🎬 ${title}</h2>
+      ${walk && plane ? `<div class="planebox" style="margin-top:10px">${planeSVG(plane, { walk: [walk[0], walk[1], k + 1] })}</div>` : ""}
+      <ol class="steps">${lines.map((l, i) => `<li class="${i === k ? "cur" : ""}" ${i > k ? 'style="opacity:.35"' : ""}>${l}</li>`).join("")}</ol>
+      <div class="actions"><button class="btn" id="sNext" ${k >= lines.length - 1 ? "hidden" : ""}>▶️ Siguiente paso</button><button class="btn alt" id="sClose">✖️ Cerrar</button></div></div>`;
+    m.querySelector("#sNext").onclick = () => { k++; draw(); say(stripHTML(lines[k])); };
+    m.querySelector("#sClose").onclick = () => m.remove();
+  };
+  draw(); document.body.appendChild(m); say(stripHTML(lines[0]));
+  m.addEventListener("click", ev => { if (ev.target === m) m.remove(); });
+  const onEsc = ev => { if (ev.key === "Escape") { m.remove(); document.removeEventListener("keydown", onEsc); } };
+  document.addEventListener("keydown", onEsc);
+  setTimeout(() => { const b = m.querySelector("#sNext:not([hidden])") || m.querySelector("#sClose"); b && b.focus(); }, 50);
+}
+
+/* ---------- Diploma ---------- */
+function screenDiploma() {
+  if (!allDone()) return screenMap();
+  const d = new Date(); const fecha = d.toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
+  const totErr = STATIONS.reduce((s, x) => s + stOf(x.id).err, 0);
+  app.innerHTML = `
+  <section class="card noprint"><div class="row"><button class="btn alt" id="mp">🗺️ Volver al mapa</button>
+    ${inIframe ? `<span class="small muted">Para imprimir, abrí el simulador desde su enlace publicado o hacé una captura de pantalla.</span>` : `<button class="btn" id="pr">🖨️ Imprimir diploma</button>`}</div></section>
+  <section class="card"><div class="diploma pop">
+    <img src="${LOGO_SRC}" alt="Escudo Escuela 718">
+    <div style="font-family:var(--font-display);letter-spacing:.08em;text-transform:uppercase;font-size:.9rem">Escuela Provincial N.º 718 "Libertad" · Rada Tilly</div>
+    <h2>Diploma de Explorador del Plano</h2>
+    <p>Se otorga a</p>
+    <div class="who">${esc(S.name)}</div>
+    <p>por completar las <b>10 estaciones</b> del <b>Viaje por el Plano 2</b>: coordenadas con números negativos, figuras en los cuatro cuadrantes, tablas de proporcionalidad, fórmulas, lectura de gráficos y gráfico de rectas.</p>
+    <div class="seal">🚂🏅🧭</div>
+    <p class="small">Rada Tilly, ${fecha}.</p>
+    <div class="firma"><div>Prof. y Mg. Hugo D. Karlau<br>Matemática</div><div>Firma del estudiante</div></div>
+  </div></section>`;
+  app.querySelector("#mp").onclick = screenMap;
+  const pr = app.querySelector("#pr"); if (pr) pr.onclick = () => window.print();
+  confetti(); beep("win");
+}
+
+/* ---------- Actividades para la carpeta (con clave de corrección) ---------- */
+const ACTS = [
+  { t: "1. Leer coordenadas", items: ["Escribí las coordenadas de los puntos: A está 4 a la derecha y 0 hacia arriba; B está 0 a la derecha y 6 hacia arriba; C está 3 a la derecha y 5 hacia arriba."],
+    key: "A (4 ; 0) · B (0 ; 6) · C (3 ; 5)" },
+  { t: "2. ¿Hacia dónde vas?", items: [`Completá: para llegar a (${MINUS}4 ; 3) vas <span class="blank"></span> hacia la <span class="blank"></span> y <span class="blank"></span> hacia <span class="blank"></span>.`, `Completá: para llegar a (2 ; ${MINUS}5) vas <span class="blank"></span> hacia la <span class="blank"></span> y <span class="blank"></span> hacia <span class="blank"></span>.`],
+    key: `(${MINUS}4 ; 3): vas 4 hacia la izquierda y 3 hacia arriba. · (2 ; ${MINUS}5): vas 2 hacia la derecha y 5 hacia abajo.` },
+  { t: "3. ¿En qué cuadrante está?", items: [`(${MINUS}2 ; ${MINUS}3) · (5 ; ${MINUS}1) · (${MINUS}4 ; 2) · (3 ; 3)`],
+    key: `(${MINUS}2 ; ${MINUS}3): 3.º cuadrante · (5 ; ${MINUS}1): 4.º cuadrante · (${MINUS}4 ; 2): 2.º cuadrante · (3 ; 3): 1.º cuadrante` },
+  { t: "4. Formar una figura", items: [`En tu carpeta, dibujá un plano del ${MINUS}5 al 5 y uní en orden: A (${MINUS}3 ; ${MINUS}2), B (3 ; ${MINUS}2), C (3 ; 2), D (${MINUS}3 ; 2). ¿Qué figura se forma? ¿Cuántos cuadraditos mide el lado AB?`],
+    key: "Se forma un rectángulo. El lado AB mide 6 cuadraditos (3 desde −3 hasta 0, y 3 desde 0 hasta 3)." },
+  { t: "5. Proporcionalidad directa", items: ["Cada caja trae 6 alfajores. Completá: 1 caja → 6 · 3 cajas → ___ · 5 cajas → ___ · ___ cajas → 48 · 10 cajas → ___"],
+    key: "18 · 30 · 8 cajas (48 ÷ 6) · 60" },
+  { t: "6. Tabla con fórmula", items: [`Una planta mide 4 cm y crece 3 cm por semana: altura = 4 + 3 ${mul} semanas. Completá: 0 semanas → ___ · 2 semanas → ___ · 5 semanas → ___ · ___ semanas → 22 cm`],
+    key: "4 cm · 10 cm · 19 cm · 6 semanas (22 − 4 = 18; 18 ÷ 3 = 6)" },
+  { t: "7. Descubrí la fórmula", items: ["x: 0, 1, 2, 3 — y: 5, 7, 9, 11. ¿Cuál es la fórmula?"],
+    key: `y = 2 ${mul} x + 5 (empieza en 5 y aumenta 2 cada vez)` },
+  { t: "8. ¿Es proporcionalidad directa?", items: ["Tabla A — x: 1, 2, 3 · y: 4, 8, 12. Tabla B — x: 1, 2, 3 · y: 5, 8, 11."],
+    key: "Tabla A: SÍ (y ÷ x da siempre 4). Tabla B: NO (5 ÷ 1 = 5, pero 8 ÷ 2 = 4)." },
+  { t: "9. Leer un gráfico", items: ["Una vela mide 12 cm y se achica 2 cm por hora. ¿Cuánto mide a las 3 horas? ¿A qué hora mide 4 cm? ¿Cuándo se termina?"],
+    key: "A las 3 horas mide 6 cm. Mide 4 cm a las 4 horas. Se termina a las 6 horas (12 ÷ 2 = 6)." },
+  { t: "10. Graficar una recta", items: [`Completá la tabla de y = 2 ${mul} x ${MINUS} 1 para x = ${MINUS}2, ${MINUS}1, 0, 1, 2 y marcá los puntos. ¿Dónde corta al eje vertical?`],
+    key: `y: ${MINUS}5, ${MINUS}3, ${MINUS}1, 1, 3. Puntos: (${MINUS}2 ; ${MINUS}5), (${MINUS}1 ; ${MINUS}3), (0 ; ${MINUS}1), (1 ; 1), (2 ; 3). Corta al eje vertical en (0 ; ${MINUS}1).` }
+];
+function screenActs() {
+  stopWalk();
+  app.innerHTML = `
+  <section class="card">
+    <div class="row noprint" style="justify-content:space-between"><h2>📝 Actividades para la carpeta</h2>
+      <div class="row"><button class="btn alt" id="allKey">👁️ Mostrar todas las respuestas</button>${inIframe ? "" : `<button class="btn alt" id="pr">🖨️ Imprimir</button>`}<button class="btn alt" id="mp">🗺️ Mapa</button></div></div>
+    <p class="muted">Resolvé en tu carpeta. Después tocá <b>Ver respuesta</b> para corroborar. Si te equivocaste, buscá la estación del mismo número y practicá.</p>
+    ${ACTS.map((a, k) => `<div class="act"><h3>${a.t}</h3><ol>${a.items.map(i => `<li>${i}</li>`).join("")}</ol>
+      <button class="btn alt noprint" data-k="${k}" style="padding:6px 14px;font-size:.9rem">✅ Ver respuesta</button><div class="key" id="key${k}"><b>Respuesta:</b> ${a.key}</div></div>`).join("")}
+  </section>`;
+  app.querySelectorAll("[data-k]").forEach(b => b.onclick = () => { const kk = app.querySelector("#key" + b.dataset.k); kk.classList.toggle("show"); b.textContent = kk.classList.contains("show") ? "🙈 Ocultar respuesta" : "✅ Ver respuesta"; });
+  app.querySelector("#allKey").onclick = () => app.querySelectorAll(".key").forEach(k => k.classList.add("show"));
+  app.querySelector("#mp").onclick = screenMap;
+  const pr = app.querySelector("#pr"); if (pr) pr.onclick = () => window.print();
+}
+
+/* ---------- Panel docente (Ctrl + D) ---------- */
+function openPanel() {
+  const m = document.createElement("div"); m.className = "modal";
+  const mmss = ms => { const s = Math.round(ms / 1000); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
+  const rows = STATIONS.map(s => { const t = stOf(s.id); const et = t.errTypes || {};
+    return `<tr><td style="text-align:left">${s.id}. ${s.title}</td><td>${t.done ? "✔" : t.att ? "…" : "—"}</td><td>${t.att}</td><td>${t.err}</td><td>${et.orden || 0}</td><td>${et.signo || 0}</td><td>${(et.conteo || 0)}</td><td>${(et.tabla || 0) + (et["opción"] || 0)}</td><td>${mmss(t.ms)}</td><td>${t.feel || "—"}</td></tr>`; }).join("");
+  m.innerHTML = `<div class="card panel" style="max-width:900px"><h2>Registro de seguimiento · Viaje por el Plano 2</h2>
+    <p class="small muted">Estudiante: <b>${esc(S.name || "—")}</b> · Estaciones completas: ${STATIONS.filter(s => stOf(s.id).done).length}/10 · Datos guardados solo en este dispositivo.</p>
+    <div class="tblwrap"><table><tr><th>Estación</th><th>Estado</th><th>Ingresos</th><th>Errores</th><th>Orden (x;y) invertido</th><th>Signo</th><th>Conteo</th><th>Tabla / opción</th><th>Tiempo</th><th>Autoev.</th></tr>${rows}</table></div>
+    <p class="small"><b>Lectura sugerida:</b> errores de <i>orden</i> indican que confunde abscisa y ordenada; de <i>signo</i>, dificultad con la ubicación de negativos; de <i>conteo</i>, errores de desplazamiento (revisar el paso por el 0).</p>
+    <label for="obs"><b>Observaciones del docente:</b></label><textarea id="obs" rows="3" style="width:100%">${esc(S.obs || "")}</textarea>
+    <div class="actions noprint">${inIframe ? "" : `<button class="btn" id="pPr">🖨️ Imprimir informe</button>`}<button class="btn alt" id="pDel">🗑️ Borrar progreso</button><button class="btn alt" id="pClose">↩️ Volver</button></div>
+    <div id="delc" class="fb info noprint"><span>¿Seguro que querés borrar todo el progreso de este dispositivo?</span><button class="btn" id="pYes">Sí, borrar</button><button class="btn alt" id="pNo">No</button></div>
+    <p class="small muted">🔒 Panel privado. Se abre con Ctrl + D (o Ctrl + Alt + D) desde cualquier pantalla.</p></div>`;
+  document.body.appendChild(m);
+  m.querySelector("#obs").oninput = ev => { S.obs = ev.target.value; save(); };
+  m.querySelector("#pClose").onclick = () => m.remove();
+  const pp = m.querySelector("#pPr"); if (pp) pp.onclick = () => window.print();
+  m.querySelector("#pDel").onclick = () => m.querySelector("#delc").classList.add("show");
+  m.querySelector("#pNo").onclick = () => m.querySelector("#delc").classList.remove("show");
+  m.querySelector("#pYes").onclick = () => { S = { name: "", st: {}, obs: "", font: S.font, voice: S.voice, calm: S.calm }; save(); m.remove(); screenHome(); };
+}
+
+/* ---------- 5) SONIDO, VOZ Y MÚSICA ---------- */
+let AC = null;
+function ac() { try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === "suspended") AC.resume(); } catch (e) {} return AC; }
+function tone(f, t0, d, type = "sine", vol = .12) { const c = ac(); if (!c) return; const o = c.createOscillator(), g = c.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(0, c.currentTime + t0); g.gain.linearRampToValueAtTime(vol, c.currentTime + t0 + .02); g.gain.exponentialRampToValueAtTime(.001, c.currentTime + t0 + d); o.connect(g); g.connect(c.destination); o.start(c.currentTime + t0); o.stop(c.currentTime + t0 + d + .05); }
+function beep(k) {
+  if (!S.voice) return;
+  if (k === "ok") { tone(660, 0, .15); tone(880, .12, .25); }
+  else if (k === "bad") { tone(300, 0, .2, "triangle", .08); }
+  else if (k === "tick") { tone(740, 0, .1, "sine", .08); }
+  else if (k === "start") { tone(523, 0, .15); tone(659, .14, .15); tone(784, .28, .3); }
+  else if (k === "win") { [523, 659, 784, 1046].forEach((f, i) => tone(f, i * .14, .35, "triangle", .1)); }
+}
+let VOICE = null;
+function pickVoice() { try { const vs = speechSynthesis.getVoices(); VOICE = vs.find(v => /es[-_]AR/i.test(v.lang)) || vs.find(v => /es[-_](419|MX|US)/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang)) || null; } catch (e) {} }
+function say(text, force) {
+  if (!S.voice || !text) return;
+  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/−/g, "menos ").replace(/×/g, " por ")); u.lang = VOICE ? VOICE.lang : "es-AR"; if (VOICE) u.voice = VOICE; u.rate = .95; speechSynthesis.speak(u); } catch (e) {}
+}
+let music = null;
+function startMusic() { // música suave y alegre generada en el momento (sin archivos externos)
+  const c = ac(); if (!c) return;
+  const notes = [392, 494, 587, 494, 440, 523, 659, 523, 392, 494, 587, 784, 659, 587, 523, 494];
+  const bass = [196, 196, 220, 220, 196, 196, 165, 175];
+  let i = 0;
+  music = setInterval(() => { tone(notes[i % notes.length], 0, .28, "triangle", .035); if (i % 2 === 0) tone(bass[(i / 2) % bass.length], 0, .5, "sine", .04); i++; }, 300);
+}
+function stopMusic() { if (music) clearInterval(music); music = null; }
+
+function confetti() {
+  if (S.calm || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = document.createElement("canvas"); cv.className = "confetti"; cv.width = innerWidth; cv.height = innerHeight; document.body.appendChild(cv);
+  const cx = cv.getContext("2d"); const cols = ["#1f3f9e", "#f2b632", "#1e8a52", "#c4533a", "#8fa9f5"];
+  const P = Array.from({ length: 120 }, () => ({ x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .5, vy: 2 + Math.random() * 4, vx: -1.5 + Math.random() * 3, r: 4 + Math.random() * 5, c: pick(cols), a: Math.random() * 6 }));
+  let f = 0; (function loop() { cx.clearRect(0, 0, cv.width, cv.height); P.forEach(p => { p.y += p.vy; p.x += p.vx; p.a += .1; cx.fillStyle = p.c; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.a); cx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * .6); cx.restore(); }); if (++f < 140) requestAnimationFrame(loop); else cv.remove(); })();
+}
+
+/* ---------- 6) INICIO ---------- */
+function applyPrefs() {
+  document.documentElement.style.setProperty("--base", S.font + "px");
+  document.getElementById("tVoice").setAttribute("aria-pressed", S.voice);
+  document.getElementById("tCalm").setAttribute("aria-pressed", S.calm);
+  document.body.classList.toggle("calm", S.calm);
+}
+function init() {
+  document.querySelectorAll("img.logo718").forEach(i => i.src = LOGO_SRC);
+  load(); applyPrefs();
+  try { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; } catch (e) {}
+  document.getElementById("fMinus").onclick = () => { S.font = Math.max(15, S.font - 1); applyPrefs(); save(); };
+  document.getElementById("fPlus").onclick = () => { S.font = Math.min(24, S.font + 1); applyPrefs(); save(); };
+  document.getElementById("tVoice").onclick = () => { S.voice = !S.voice; applyPrefs(); save(); if (S.voice) say("Voz activada"); else try { speechSynthesis.cancel(); } catch (e) {} };
+  document.getElementById("tCalm").onclick = () => { S.calm = !S.calm; if (S.calm) { stopMusic(); document.getElementById("tMusic").setAttribute("aria-pressed", false); } applyPrefs(); save(); };
+  document.getElementById("tMusic").onclick = ev => { const on = !music; if (on) startMusic(); else stopMusic(); ev.currentTarget.setAttribute("aria-pressed", on); };
+  document.getElementById("goMap").onclick = () => { if (!S.name) return screenHome(); screenMap(); };
+  document.getElementById("goAct").onclick = screenActs;
+  document.addEventListener("keydown", ev => { if (ev.ctrlKey && (ev.key === "d" || ev.key === "D")) { ev.preventDefault(); openPanel(); } });
+  screenHome();
+}
+if (typeof window !== "undefined" && typeof document !== "undefined" && document.getElementById) init();
+</script>
+
+</body>
+</html>

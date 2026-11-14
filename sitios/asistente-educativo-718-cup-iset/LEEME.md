@@ -13,7 +13,7 @@ Diseño y desarrollo: Prof. y Mg. Hugo D. Karlau.
 - La clave de Gemini queda guardada en Netlify y **nunca** llega al navegador.
 - Las fórmulas se muestran con formato matemático (fracciones apiladas).
 - **Tutor:** en la 718 sigue las instrucciones de Botito718 (Matemática e Inglés); en el CUP, las de Albus Bot. En ambos casos usa como referencia fragmentos de los cuadernillos del docente.
-- **Información institucional del ISET:** sigue las instrucciones del Asistente 812 y responde solo con la documentación oficial cargada (RAI, RAM, ROM, Calendario Académico 2026, horarios 2026, diseños curriculares y correlatividades), citando la fuente.
+- **Información institucional del ISET:** sigue las instrucciones del Asistente 812 y responde solo con la documentación oficial cargada, citando la fuente; lo que no está cargado lo deriva.
 - **Información institucional de la 718 y el CUP:** todavía sin documentación; deriva a preceptoría o Secretaría.
 
 ## Archivos
@@ -50,7 +50,8 @@ netlify.toml                                 configuración de Netlify
 
 ### Fuentes cargadas (14/11/2026)
 
-ISET N.º 812: RAI; RAM; ROM; Calendario Académico Anual 2026 (versión de la cuenta institucional, 22/10/2026); horarios 2026 de TSER (2.º cuatrimestre), TSL, TSMI (1.º año) y TSPIA (1.º y 2.º año) (1.º cuatrimestre); diseños curriculares de TSL 2022, PyG, TSMI, Multimedios, TSPIA 2017 y TSER 2022 (versión preliminar); correlatividades y planes de las siete tecnicaturas.
+ISET N.º 812: RAI; RAM; ROM; horarios del 2.º cuatrimestre 2026 de TSER; diseños curriculares de TSL 2022, PyG, TSMI, Multimedios y TSPIA 2017; correlatividades y planes de esas cinco tecnicaturas.
+Excluidos por presentar errores o estar incompletos: Calendario Académico 2026, horarios del 1.er cuatrimestre (TSL, TSMI, TSPIA), diseño curricular preliminar de TSER y correlatividades de TSER e Indumentaria.
 Escuela 718 y CUP: 32 cuadernillos del estudiante (16 por institución) de 1.º y 3.º (718) y 1.º y 2.º (CUP).
 
 ## Cuidados

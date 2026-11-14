@@ -19,17 +19,12 @@ FUENTES = [  # (archivo, institución, nombre del documento, etiquetas extra par
     ("RAI.txt", "iset", "Régimen Académico Institucional (RAI) del ISET N.º 812", "regimen academico institucional regularidad promocion examen asistencia"),
     ("RAM.txt", "iset", "Régimen Académico Marco (RAM)", "regimen academico marco"),
     ("ROM.txt", "iset", "Reglamento Orgánico Marco de la Educación Superior (ROM)", "reglamento organico marco"),
-    ("Calendario.txt", "iset", "Calendario Académico Anual 2026 del ISET N.º 812", "calendario fechas 2026 inscripcion mesas cuatrimestre feriado"),
     ("Horario_TSER.txt", "iset", "Horarios 2026 – Tecnicatura Superior en Gestión de Energías Renovables (TSER)", "horario horarios energias renovables tser"),
-    ("Horario_TSL.txt", "iset", "Horarios 2026 – Tecnicatura Superior en Logística (TSL)", "horario horarios logistica tsl"),
-    ("Horario_TSMI.txt", "iset", "Horarios 2026 – Tecnicatura Superior en Mantenimiento Industrial (TSMI)", "horario horarios mantenimiento industrial tsmi"),
-    ("Horario_TSPIA.txt", "iset", "Horarios 2026 – Tecnicatura Superior en Producción Industrial de Alimentos (TSPIA)", "horario horarios alimentos tspia"),
     ("DC_TSL.txt", "iset", "Diseño Curricular – Tecnicatura Superior en Logística (2022)", "diseno curricular plan logistica tsl"),
     ("DC_PYG.txt", "iset", "Diseño Curricular – Tecnicatura Superior en Petróleo y Gas", "diseno curricular plan petroleo gas pyg"),
     ("DC_TSMI.txt", "iset", "Diseño Curricular – Tecnicatura Superior en Mantenimiento Industrial", "diseno curricular plan mantenimiento industrial tsmi"),
     ("DC_Multimedios.txt", "iset", "Diseño Curricular – Tecnicatura Superior en Producción de Multimedios", "diseno curricular plan multimedios"),
     ("DC_TSPIA.txt", "iset", "Diseño Curricular – Tecnicatura Superior en Producción Industrial de Alimentos (cohorte 2017)", "diseno curricular plan alimentos tspia"),
-    ("DC_TSER.txt", "iset", "Diseño Curricular – Tecnicatura Superior en Gestión de Energías Renovables 2022 (versión preliminar)", "diseno curricular plan energias renovables tser"),
 ]
 
 SIGLAS = {
@@ -85,12 +80,14 @@ for archivo, inst, fuente, etiquetas in FUENTES:
 wb = openpyxl.load_workbook(os.path.join(RAIZ, "Correlatividades.xlsx"), data_only=True)
 anio = {}
 plan = defaultdict(lambda: defaultdict(list))
+# Carreras excluidas: TSER (diseño curricular preliminar) e Indumentaria (sin diseño curricular cargado)
+EXCLUIDAS = {"Gestión de Energías Renovables", "Confección de Indumentaria y Productos Textiles"}
 for car, a, uc, _ in wb["DATOS_UC"].iter_rows(min_row=2, values_only=True):
-    if car and uc:
+    if car and uc and car not in EXCLUIDAS:
         a = int(a); anio[(car, uc)] = a; plan[car][a].append(uc)
 req = defaultdict(lambda: defaultdict(list))
 for car, uc, tipo, cor, a_cor, _ in wb["DATOS_REQ"].iter_rows(min_row=2, values_only=True):
-    if car and uc and cor:
+    if car and uc and cor and car not in EXCLUIDAS:
         req[(car, uc)][tipo].append(f"{cor} ({int(a_cor)}.º año)" if a_cor else cor)
 
 FUENTE_COR = "Régimen de correlatividades (Sistema de Correlatividades ISET N.º 812, según el Diseño Curricular de cada carrera)"

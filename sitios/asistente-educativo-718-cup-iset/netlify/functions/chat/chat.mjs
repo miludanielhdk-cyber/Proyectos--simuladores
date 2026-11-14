@@ -92,8 +92,8 @@ ${INSTRUCCIONES.iset}
 
 ACLARACIONES SOBRE LA DOCUMENTACIÓN DISPONIBLE:
 - Tu «base de conocimiento» son ÚNICAMENTE los fragmentos de abajo, recuperados automáticamente para esta consulta. Si no alcanzan para responder con certeza, usá el mensaje de derivación.
-- Los horarios corresponden al cuatrimestre que indica cada encabezado (por ejemplo, «1er cuatrimestre»): mencionalo siempre al informar un horario.
-- El Diseño Curricular de Gestión de Energías Renovables es una versión preliminar: aclaralo si lo usás.
+- Solo están cargados los horarios del 2.º cuatrimestre 2026 de la Tecnicatura en Gestión de Energías Renovables (TSER). Para horarios de otras carreras, para el calendario académico y para fechas de mesas de examen NO hay documentación cargada: usá el mensaje de derivación.
+- No hay Diseño Curricular ni correlatividades cargadas de Gestión de Energías Renovables ni de Confección de Indumentaria y Productos Textiles: ante consultas de esas carreras sobre planes o correlatividades, usá el mensaje de derivación.
 - Las correlatividades figuran por carrera y unidad curricular, diferenciando PARA CURSAR (regular / aprobada) y PARA APROBAR. Recordá que lo que rige es el Diseño Curricular de la cohorte del estudiante.
 ${bloqueFragmentos("DOCUMENTACIÓN OFICIAL RECUPERADA", frs)}`;
     }

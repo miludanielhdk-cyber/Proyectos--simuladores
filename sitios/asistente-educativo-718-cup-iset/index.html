@@ -141,8 +141,8 @@ const MODOS = {
              est:"Te guío paso a paso para que resuelvas tus ejercicios.",
              doc:"Resoluciones comentadas, errores frecuentes y variantes de ejercicios." },
   info:    { titulo:"Información institucional", icono:"🏫",
-             est:"Correlatividades, régimen académico, calendario y horarios (información oficial).",
-             doc:"Correlatividades, régimen académico, calendario y horarios (información oficial)." },
+             est:"Correlatividades, planes de estudio y régimen académico (información oficial).",
+             doc:"Correlatividades, planes de estudio y régimen académico (información oficial)." },
   docente: { titulo:"Asistente docente", icono:"📝",
              doc:"Planificaciones, consignas, actividades, rúbricas y adecuaciones." },
 };
@@ -156,7 +156,7 @@ function bienvenida(){
   if (m === "tutor")
     return "¡Hola! Puedo mostrarte resoluciones comentadas, errores frecuentes de los estudiantes y variantes de ejercicios. ¿Con qué tema empezamos?";
   if (m === "info" && i === "iset")
-    return "¡Bienvenido/a al Asistente Académico del ISET N.º 812!\n\nPuedo ayudarte a consultar información institucional oficial sobre:\n- 📚 Correlatividades\n- 📖 Planes de estudio\n- 📝 Régimen académico\n- 🎓 Requisitos para cursar o rendir\n- 🗓️ Calendario académico y horarios\n- 🏛️ Normativas y procedimientos institucionales\n\nMis respuestas se basan exclusivamente en la documentación oficial cargada. ¿Sobre qué tema necesitás información?";
+    return "¡Bienvenido/a al Asistente Académico del ISET N.º 812!\n\nPuedo ayudarte a consultar información institucional oficial sobre:\n- 📚 Correlatividades\n- 📖 Planes de estudio\n- 📝 Régimen académico\n- 🎓 Requisitos para cursar o rendir\n- 🗓️ Horarios de TSER (2.º cuatrimestre)\n- 🏛️ Normativas y procedimientos institucionales\n\nMis respuestas se basan exclusivamente en la documentación oficial cargada. ¿Sobre qué tema necesitás información?";
   if (m === "info")
     return "¡Hola! Todavía no tengo información institucional cargada de esta escuela, así que para horarios, fechas o normas te voy a sugerir consultar en preceptoría o Secretaría. ¿En qué te puedo orientar?";
   return "¡Hola! ¿En qué te ayudo? Puedo armar una planificación, una secuencia, actividades graduadas, una rúbrica o adecuaciones. Indicame curso, tema y propósito.";

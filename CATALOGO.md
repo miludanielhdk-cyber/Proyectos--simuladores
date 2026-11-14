@@ -93,7 +93,11 @@ Estos sitios conservan el nombre que Netlify asigna por defecto. Conviene abrirl
 |---|---|---|
 | `sitios/planoyfuncionlineal-2/` | Viaje por el Plano 2 (nivel 2, Escuela 718). Corregido: el botón «Siguiente» ya no aparece antes de responder. | 12/11/2026 |
 | `sitios/planoyfuncionlineal3/` | Viaje por el Plano 3 (nivel 3, Escuela 718, trabajo con Simón): plano de −6 a 6, mover puntos, distancias, perímetro y área, tablas que suben y bajan, dos gráficos, rectas y ejes; cuentas para hacer en la hoja. | 12/11/2026 |
-| `sitios/asistente-educativo-718-cup-iset/` | Asistente Educativo con IA (Gemini) para la Escuela 718, el CUP y el ISET N.º 812: estudiantes (tutor de Matemática, información institucional) y docentes con código (además, asistente docente). La clave de Gemini va como variable de entorno en Netlify; ver LEEME.md. Pendiente de publicar. | 14/11/2026 |
+| `sitios/asistente-educativo-718-cup-iset/` | Asistente Educativo con IA (Gemini) para la Escuela 718, el CUP y el ISET N.º 812: estudiantes (tutor de Matemática, información institucional) y docentes con código (además, asistente docente). La clave de Gemini va como variable de entorno en Netlify; ver LEEME.md. Con logos de la 718, CUP y CeRET. Pendiente de publicar. | 14/11/2026 |
+
+## Logos institucionales
+
+Carpeta `logos-institucionales/` con los logos oficiales de la Escuela 718, el CUP, el ISET N.º 812 (CeRET), el Ministerio de Educación del Chubut y la UNPSJB (ver su LEEME.md).
 
 ## Criterio de guardado de aquí en adelante
 

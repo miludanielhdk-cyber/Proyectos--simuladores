@@ -39,8 +39,8 @@ export const INSTITUCIONES = {
   },
 
   iset: {
-    conNombre: "del ISET N.º 812 (Instituto Superior de Educación Tecnológica)",
-    nombre: "ISET N.º 812 (Instituto Superior de Educación Tecnológica)",
+    conNombre: "del ISET N.º 812 – CeRET (Instituto Superior de Educación Tecnológica «Ing. Estela Miguel»)",
+    nombre: "ISET N.º 812 – CeRET (Instituto Superior de Educación Tecnológica «Ing. Estela Miguel»)",
     lugar: "Comodoro Rivadavia, Chubut",
     nivel: "superior (tecnicaturas)",
     conocimiento: `

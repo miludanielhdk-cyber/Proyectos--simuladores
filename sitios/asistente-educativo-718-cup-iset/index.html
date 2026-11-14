@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asistente Educativo · 718 · CUP · ISET 812</title>
+<link rel="stylesheet" href="vendor/katex/katex.min.css">
+<script defer src="vendor/katex/katex.min.js"></script>
+<script defer src="vendor/katex/contrib/auto-render.min.js"></script>
+<style>
+  :root{
+    --acento:#37474f; --acento-suave:#eceff1;
+    --texto:#1f2933; --gris:#6b7280; --fondo:#f5f7fa; --blanco:#fff;
+    --radio:14px; --sombra:0 2px 10px rgba(0,0,0,.08);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Roboto,Arial,sans-serif;background:var(--fondo);color:var(--texto);
+       min-height:100vh;display:flex;flex-direction:column}
+  header{background:var(--acento);color:#fff;padding:14px 18px;display:flex;align-items:center;gap:12px}
+  header .sello{width:46px;height:46px;border-radius:50%;background:#fff;display:flex;align-items:center;
+       justify-content:center;overflow:hidden;flex-shrink:0;color:var(--acento);font-weight:800;font-size:.8rem;text-align:center;line-height:1}
+  header .sello img{width:100%;height:100%;object-fit:contain}
+  header h1{font-size:1.05rem;margin:0}
+  header p{margin:2px 0 0;font-size:.82rem;opacity:.9}
+  main{flex:1;width:100%;max-width:820px;margin:0 auto;padding:18px}
+  h2{font-size:1.15rem;margin:6px 0 14px}
+  .tarjetas{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+  .tarjeta{background:var(--blanco);border:2px solid transparent;border-radius:var(--radio);box-shadow:var(--sombra);
+       padding:16px;cursor:pointer;text-align:left;font:inherit;color:inherit;display:flex;gap:12px;align-items:center;transition:.15s}
+  .tarjeta:hover,.tarjeta:focus{border-color:var(--c, var(--acento));outline:none;transform:translateY(-2px)}
+  .tarjeta .ico{width:52px;height:52px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+       background:var(--c, var(--acento));color:#fff;font-weight:800;font-size:.85rem;overflow:hidden;text-align:center;line-height:1.05}
+  .tarjeta .ico img{width:100%;height:100%;object-fit:contain;background:#fff}
+  .tarjeta b{display:block;margin-bottom:3px}
+  .tarjeta small{color:var(--gris)}
+  .volver{background:none;border:none;color:var(--acento);font:inherit;cursor:pointer;padding:4px 0;margin-bottom:8px;font-weight:600}
+  .campo{margin-top:14px;background:var(--blanco);border-radius:var(--radio);box-shadow:var(--sombra);padding:14px}
+  .campo label{font-weight:600;display:block;margin-bottom:6px}
+  input[type=password],textarea{width:100%;font:inherit;padding:10px 12px;border:1.5px solid #cfd8dc;border-radius:10px}
+  .boton{background:var(--acento);color:#fff;border:none;border-radius:10px;padding:10px 18px;font:inherit;font-weight:600;cursor:pointer}
+  .boton:disabled{opacity:.5;cursor:default}
+  .boton.sec{background:var(--acento-suave);color:var(--acento)}
+  .aviso{font-size:.82rem;color:var(--gris);background:#fff8e1;border-left:4px solid #ffb300;padding:8px 12px;border-radius:8px;margin:12px 0}
+  .error{color:#b71c1c;font-size:.9rem;margin-top:8px}
+  /* Chat */
+  #pantalla-chat{display:flex;flex-direction:column;height:calc(100vh - 150px);min-height:420px}
+  .barra{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+  .etiqueta{background:var(--acento-suave);color:var(--acento);border-radius:999px;padding:4px 12px;font-size:.82rem;font-weight:600}
+  .barra .espacio{flex:1}
+  .barra button{font-size:.82rem;padding:6px 12px}
+  #mensajes{flex:1;overflow-y:auto;background:var(--blanco);border-radius:var(--radio);box-shadow:var(--sombra);padding:14px;display:flex;flex-direction:column;gap:10px}
+  .msj{max-width:88%;padding:10px 14px;border-radius:14px;line-height:1.5;overflow-wrap:anywhere}
+  .msj.usuario{align-self:flex-end;background:var(--acento);color:#fff;border-bottom-right-radius:4px;white-space:pre-wrap}
+  .msj.asistente{align-self:flex-start;background:var(--acento-suave);border-bottom-left-radius:4px}
+  .msj.asistente p{margin:.3em 0}
+  .msj.asistente ul,.msj.asistente ol{margin:.3em 0;padding-left:1.3em}
+  .msj.asistente h4{margin:.5em 0 .2em;font-size:1rem}
+  .msj.asistente code{background:#fff;padding:1px 5px;border-radius:5px}
+  .msj .katex-display{overflow-x:auto;overflow-y:hidden;padding:4px 0}
+  .escribiendo{color:var(--gris);font-style:italic}
+  .entrada{display:flex;gap:8px;margin-top:10px}
+  .entrada textarea{resize:none;height:56px}
+  footer{text-align:center;font-size:.75rem;color:var(--gris);padding:10px 14px 16px}
+  .oculto{display:none!important}
+  @media (max-width:560px){ #pantalla-chat{height:calc(100vh - 130px)} .msj{max-width:95%} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="sello" id="sello">IA</div>
+  <div>
+    <h1 id="titulo">Asistente Educativo</h1>
+    <p id="subtitulo">Escuela N.º 718 · CUP · ISET N.º 812</p>
+  </div>
+</header>
+
+<main>
+  <!-- 1. Institución -->
+  <section id="pantalla-institucion">
+    <h2>¿De qué institución sos?</h2>
+    <div class="tarjetas" id="lista-instituciones"></div>
+  </section>
+
+  <!-- 2. Perfil -->
+  <section id="pantalla-perfil" class="oculto">
+    <button class="volver" data-ir="institucion">← Cambiar institución</button>
+    <h2>¿Quién va a usar el asistente?</h2>
+    <div class="tarjetas">
+      <button class="tarjeta" data-perfil="estudiante"><span class="ico">🎒</span>
+        <span><b>Soy estudiante</b><small>Ayuda con Matemática e información de la institución</small></span></button>
+      <button class="tarjeta" data-perfil="docente"><span class="ico">📘</span>
+        <span><b>Soy docente</b><small>Planificación, actividades, Matemática e información institucional</small></span></button>
+    </div>
+    <div class="campo oculto" id="campo-codigo">
+      <label for="codigo">Código docente</label>
+      <input type="password" id="codigo" autocomplete="off" placeholder="Ingresá el código que te dio la institución">
+      <div style="margin-top:10px"><button class="boton" id="btn-codigo">Continuar</button></div>
+    </div>
+  </section>
+
+  <!-- 3. Modo -->
+  <section id="pantalla-modo" class="oculto">
+    <button class="volver" data-ir="perfil">← Volver</button>
+    <h2>¿Qué necesitás?</h2>
+    <div class="tarjetas" id="lista-modos"></div>
+  </section>
+
+  <!-- 4. Chat -->
+  <section id="pantalla-chat" class="oculto">
+    <div class="barra">
+      <span class="etiqueta" id="etq-inst"></span>
+      <span class="etiqueta" id="etq-modo"></span>
+      <span class="espacio"></span>
+      <button class="boton sec" id="btn-cambiar">Cambiar modo</button>
+      <button class="boton sec" id="btn-nueva">Nueva conversación</button>
+    </div>
+    <div id="mensajes" aria-live="polite"></div>
+    <div class="error oculto" id="error"></div>
+    <form class="entrada" id="formulario">
+      <textarea id="texto" maxlength="2000" placeholder="Escribí tu consulta…" aria-label="Tu consulta"></textarea>
+      <button class="boton" id="btn-enviar" type="submit">Enviar</button>
+    </form>
+  </section>
+
+  <p class="aviso" id="aviso-privacidad">🔒 No escribas datos personales (nombre completo, DNI, teléfono, dirección). El asistente usa inteligencia artificial y puede equivocarse: revisá siempre las respuestas y, ante dudas, consultá con tu docente o la institución.</p>
+</main>
+
+<footer>Asistente Educativo con IA · Diseño y desarrollo: Prof. y Mg. Hugo D. Karlau</footer>
+
+<script>
+// ===================== Configuración =====================
+const INSTITUCIONES = {
+  "718": { nombre:"Escuela N.º 718 «Libertad»", detalle:"Rada Tilly · Secundario", sigla:"718",  color:"#2e7d32", logo:null },
+  "cup": { nombre:"Colegio Universitario Patagónico", detalle:"CUP «Prof. Adriana Librandi» · Secundario", sigla:"CUP", color:"#1565c0", logo:"img/logo_cup.png" },
+  "iset":{ nombre:"ISET N.º 812", detalle:"Comodoro Rivadavia · Nivel superior", sigla:"ISET<br>812", color:"#00796b", logo:null },
+};
+const MODOS = {
+  tutor:   { titulo:"Tutor de Matemática", icono:"➗",
+             est:"Te guío paso a paso para que resuelvas tus ejercicios.",
+             doc:"Resoluciones comentadas, errores frecuentes y variantes de ejercicios." },
+  info:    { titulo:"Información institucional", icono:"🏫",
+             est:"Consultas sobre la institución (solo con información oficial cargada).",
+             doc:"Consultas sobre la institución (solo con información oficial cargada)." },
+  docente: { titulo:"Asistente docente", icono:"📝",
+             doc:"Planificaciones, consignas, actividades, rúbricas y adecuaciones." },
+};
+const MODOS_POR_PERFIL = { estudiante:["tutor","info"], docente:["tutor","info","docente"] };
+const BIENVENIDA = {
+  tutor:   "¡Hola! Soy tu tutor de Matemática. Contame qué ejercicio o tema estás trabajando y lo vamos resolviendo juntos, paso a paso.",
+  info:    "¡Hola! Puedo responder consultas sobre la institución con la información oficial que tengo cargada. ¿Qué querés saber?",
+  docente: "¡Hola! ¿En qué te ayudo? Puedo armar una planificación, una secuencia, actividades graduadas, una rúbrica o adecuaciones. Indicame curso, tema y propósito.",
+};
+
+// ===================== Estado =====================
+const estado = { institucion:null, perfil:null, modo:null, codigo:"", mensajes:[], enviando:false };
+const $ = (id) => document.getElementById(id);
+
+// ===================== Navegación =====================
+function mostrar(pantalla){
+  ["institucion","perfil","modo","chat"].forEach(p => $("pantalla-"+p).classList.toggle("oculto", p !== pantalla));
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("[data-ir]").forEach(b => b.addEventListener("click", () => mostrar(b.dataset.ir)));
+
+function aplicarIdentidad(){
+  const i = INSTITUCIONES[estado.institucion];
+  document.documentElement.style.setProperty("--acento", i ? i.color : "#37474f");
+  document.documentElement.style.setProperty("--acento-suave", i ? i.color + "1a" : "#eceff1");
+  $("sello").innerHTML = i ? (i.logo ? `<img src="${i.logo}" alt="Logo ${i.sigla}">` : i.sigla) : "IA";
+  $("titulo").textContent = i ? "Asistente Educativo · " + i.nombre : "Asistente Educativo";
+  $("subtitulo").textContent = i ? i.detalle : "Escuela N.º 718 · CUP · ISET N.º 812";
+}
+
+// 1. Instituciones
+Object.entries(INSTITUCIONES).forEach(([id, i]) => {
+  const b = document.createElement("button");
+  b.className = "tarjeta"; b.style.setProperty("--c", i.color);
+  b.innerHTML = `<span class="ico">${i.logo ? `<img src="${i.logo}" alt="">` : i.sigla}</span>
+                 <span><b>${i.nombre}</b><small>${i.detalle}</small></span>`;
+  b.addEventListener("click", () => { estado.institucion = id; aplicarIdentidad(); $("campo-codigo").classList.add("oculto"); mostrar("perfil"); });
+  $("lista-instituciones").appendChild(b);
+});
+
+// 2. Perfil
+document.querySelectorAll("[data-perfil]").forEach(b => b.addEventListener("click", () => {
+  estado.perfil = b.dataset.perfil;
+  if (estado.perfil === "docente") { $("campo-codigo").classList.remove("oculto"); $("codigo").focus(); }
+  else { estado.codigo = ""; armarModos(); mostrar("modo"); }
+}));
+$("btn-codigo").addEventListener("click", () => { estado.codigo = $("codigo").value.trim(); armarModos(); mostrar("modo"); });
+$("codigo").addEventListener("keydown", e => { if (e.key === "Enter") $("btn-codigo").click(); });
+
+// 3. Modos
+function armarModos(){
+  const cont = $("lista-modos"); cont.innerHTML = "";
+  MODOS_POR_PERFIL[estado.perfil].forEach(m => {
+    const d = MODOS[m];
+    const b = document.createElement("button");
+    b.className = "tarjeta";
+    b.innerHTML = `<span class="ico">${d.icono}</span><span><b>${d.titulo}</b><small>${estado.perfil === "docente" ? d.doc : d.est}</small></span>`;
+    b.addEventListener("click", () => { estado.modo = m; iniciarChat(); });
+    cont.appendChild(b);
+  });
+}
+
+// 4. Chat
+function iniciarChat(){
+  estado.mensajes = [];
+  $("mensajes").innerHTML = "";
+  $("error").classList.add("oculto");
+  $("etq-inst").textContent = INSTITUCIONES[estado.institucion].sigla.replace("<br>"," ");
+  $("etq-modo").textContent = MODOS[estado.modo].titulo + (estado.perfil === "docente" ? " · Docente" : " · Estudiante");
+  agregarBurbuja("asistente", BIENVENIDA[estado.modo]);
+  mostrar("chat");
+  $("texto").focus();
+}
+$("btn-nueva").addEventListener("click", iniciarChat);
+$("btn-cambiar").addEventListener("click", () => mostrar("modo"));
+
+// --- Formato seguro de las respuestas (Markdown básico + LaTeX) ---
+function escapar(t){ return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+function enLinea(t){
+  return t.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+          .replace(/`([^`]+)`/g,"<code>$1</code>");
+}
+function formatear(texto){
+  const lineas = escapar(texto).split("\n");
+  let html = "", lista = null;
+  const cerrar = () => { if (lista){ html += `</${lista}>`; lista = null; } };
+  for (const l of lineas){
+    let m;
+    if ((m = l.match(/^\s*[-*•]\s+(.*)/))){ if (lista !== "ul"){ cerrar(); html += "<ul>"; lista = "ul"; } html += `<li>${enLinea(m[1])}</li>`; }
+    else if ((m = l.match(/^\s*\d+[.)]\s+(.*)/))){ if (lista !== "ol"){ cerrar(); html += "<ol>"; lista = "ol"; } html += `<li>${enLinea(m[1])}</li>`; }
+    else if ((m = l.match(/^#{1,6}\s+(.*)/))){ cerrar(); html += `<h4>${enLinea(m[1])}</h4>`; }
+    else if (l.trim() === ""){ cerrar(); }
+    else { cerrar(); html += `<p>${enLinea(l)}</p>`; }
+  }
+  cerrar();
+  return html;
+}
+function renderMatematica(el){
+  if (window.renderMathInElement){
+    renderMathInElement(el, { delimiters:[
+      {left:"$$",right:"$$",display:true},{left:"\\[",right:"\\]",display:true},
+      {left:"$",right:"$",display:false},{left:"\\(",right:"\\)",display:false}],
+      throwOnError:false });
+  }
+}
+function agregarBurbuja(rol, texto){
+  const d = document.createElement("div");
+  d.className = "msj " + rol;
+  if (rol === "asistente"){ d.innerHTML = formatear(texto); renderMatematica(d); }
+  else d.textContent = texto;
+  $("mensajes").appendChild(d);
+  $("mensajes").scrollTop = $("mensajes").scrollHeight;
+  return d;
+}
+
+async function enviar(){
+  const texto = $("texto").value.trim();
+  if (!texto || estado.enviando) return;
+  estado.enviando = true; $("btn-enviar").disabled = true;
+  $("error").classList.add("oculto");
+  $("texto").value = "";
+  const burbujaUsuario = agregarBurbuja("usuario", texto);
+  estado.mensajes.push({ rol:"usuario", texto });
+  const espera = agregarBurbuja("asistente", "Pensando…"); espera.classList.add("escribiendo");
+
+  try{
+    const r = await fetch("/api/chat", {
+      method:"POST", headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({ institucion:estado.institucion, perfil:estado.perfil, modo:estado.modo,
+                             codigo:estado.codigo, mensajes:estado.mensajes })
+    });
+    const datos = await r.json().catch(() => ({}));
+    espera.remove();
+    if (!r.ok || !datos.respuesta){
+      estado.mensajes.pop(); burbujaUsuario.remove(); // se descarta el mensaje que falló
+      $("texto").value = texto;                   // y se devuelve al cuadro para reintentar
+      mostrarError(datos.error || "No se pudo obtener respuesta. Probá de nuevo.");
+      if (r.status === 403){ $("campo-codigo").classList.remove("oculto"); mostrar("perfil"); }
+    } else {
+      estado.mensajes.push({ rol:"asistente", texto:datos.respuesta });
+      agregarBurbuja("asistente", datos.respuesta);
+    }
+  } catch {
+    espera.remove(); estado.mensajes.pop(); burbujaUsuario.remove(); $("texto").value = texto;
+    mostrarError("Sin conexión. Revisá internet y probá de nuevo.");
+  }
+  estado.enviando = false; $("btn-enviar").disabled = false; $("texto").focus();
+}
+function mostrarError(t){ $("error").textContent = t; $("error").classList.remove("oculto"); }
+
+$("formulario").addEventListener("submit", e => { e.preventDefault(); enviar(); });
+$("texto").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); enviar(); } });
+</script>
+</body>
+</html>

@@ -10,6 +10,7 @@ Diseño y desarrollo: Prof. y Mg. Hugo D. Karlau.
 | Estudiante | Tutor de Matemática (guía paso a paso, sin dar la respuesta directa) · Información institucional |
 | Docente (con código) | Tutor de Matemática (resoluciones completas) · Información institucional · Asistente docente |
 
+- **Voz:** botón 🎤 para dictar, opción «Leer en voz alta» y **Modo voz** a pantalla completa (globo de partículas y ecualizador animados; se toca el globo y se habla). Las fórmulas se leen en lenguaje natural («un medio», «al cuadrado», «entre paréntesis»). En la 718 se puede hablar en inglés. Funciona mejor en Chrome y Edge (computadora y Android).
 - La clave de Gemini queda guardada en Netlify y **nunca** llega al navegador.
 - Las fórmulas se muestran con formato matemático (fracciones apiladas).
 - **Tutor:** en la 718 sigue las instrucciones de Botito718 (Matemática e Inglés); en el CUP, las de Albus Bot. En ambos casos usa como referencia fragmentos de los cuadernillos del docente.

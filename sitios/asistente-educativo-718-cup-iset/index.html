@@ -64,6 +64,36 @@
   footer{text-align:center;font-size:.75rem;color:var(--gris);padding:10px 14px 16px}
   .oculto{display:none!important}
   @media (max-width:560px){ #pantalla-chat{height:calc(100vh - 130px)} .msj{max-width:95%} }
+  /* ===== Voz ===== */
+  .voz-btn{background:linear-gradient(135deg,#6d28d9,#0891b2);font-size:.82rem;padding:6px 12px}
+  #btn-leer[aria-pressed="true"]{background:var(--acento);color:#fff}
+  .mic{font-size:1.2rem;padding:0 14px}
+  .mic.activo{background:#dc2626;color:#fff;animation:latido 1s infinite}
+  @keyframes latido{50%{transform:scale(1.08)}}
+  #modo-voz{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+    background:radial-gradient(ellipse at 50% 40%,#16213e 0%,#0a0e1f 55%,#03040a 100%);color:#e2e8f0;padding:18px 16px 22px;overflow:hidden}
+  #modo-voz.oculto{display:none}
+  #modo-voz .arriba{width:100%;max-width:820px;display:flex;align-items:center;gap:10px}
+  #modo-voz .arriba img{height:38px;background:#fff;border-radius:8px;padding:3px}
+  #modo-voz .arriba .t{flex:1;font-size:.85rem;opacity:.85;line-height:1.25}
+  #modo-voz .cerrar{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;
+    width:42px;height:42px;font-size:1.2rem;cursor:pointer}
+  #modo-voz .idioma{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:6px 12px;cursor:pointer;font:inherit;font-size:.8rem}
+  .escena{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+  #orbe{width:min(78vw,340px);height:min(78vw,340px)}
+  #ecualizador{width:min(86vw,420px);height:70px}
+  .estado-voz{font-size:1.05rem;letter-spacing:.04em;text-align:center;min-height:1.4em;text-shadow:0 0 12px rgba(56,189,248,.6)}
+  .dialogo{width:100%;max-width:820px;max-height:30vh;overflow-y:auto;background:rgba(15,23,42,.6);border:1px solid rgba(148,163,184,.25);
+    border-radius:16px;padding:12px 14px;font-size:.95rem;line-height:1.5;backdrop-filter:blur(6px)}
+  .dialogo:empty{display:none}
+  .dialogo .preg{color:#7dd3fc;margin-bottom:6px}
+  .dialogo .resp p{margin:.25em 0}
+  .dialogo .resp ul,.dialogo .resp ol{margin:.25em 0;padding-left:1.3em}
+  .dialogo .katex{color:#fff}
+  .acciones-voz{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+  .acciones-voz button{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:999px;padding:9px 16px;font:inherit;font-size:.85rem;cursor:pointer}
+  .acciones-voz button.principal{background:linear-gradient(135deg,#7c3aed,#06b6d4);border:none;font-weight:600;padding:12px 26px;font-size:1rem;box-shadow:0 0 22px rgba(56,189,248,.45)}
+  .sin-voz{font-size:.8rem;color:#fbbf24;text-align:center;max-width:520px}
 </style>
 </head>
 <body>
@@ -113,19 +143,44 @@
       <span class="etiqueta" id="etq-inst"></span>
       <span class="etiqueta" id="etq-modo"></span>
       <span class="espacio"></span>
+      <button class="boton voz-btn" id="btn-modo-voz" title="Hablar con el asistente">🎙️ Modo voz</button>
+      <button class="boton sec" id="btn-leer" title="Leer las respuestas en voz alta" aria-pressed="false">🔈 Leer en voz alta</button>
       <button class="boton sec" id="btn-cambiar">Cambiar modo</button>
       <button class="boton sec" id="btn-nueva">Nueva conversación</button>
     </div>
     <div id="mensajes" aria-live="polite"></div>
     <div class="error oculto" id="error"></div>
     <form class="entrada" id="formulario">
-      <textarea id="texto" maxlength="2000" placeholder="Escribí tu consulta…" aria-label="Tu consulta"></textarea>
+      <button class="boton sec mic" id="btn-mic" type="button" title="Dictar por voz" aria-label="Dictar por voz">🎤</button>
+      <textarea id="texto" maxlength="2000" placeholder="Escribí o dictá tu consulta…" aria-label="Tu consulta"></textarea>
       <button class="boton" id="btn-enviar" type="submit">Enviar</button>
     </form>
   </section>
 
-  <p class="aviso" id="aviso-privacidad">🔒 No escribas datos personales (nombre completo, DNI, teléfono, dirección). El asistente usa inteligencia artificial y puede equivocarse: revisá siempre las respuestas y, ante dudas, consultá con tu docente o la institución.</p>
+  <p class="aviso" id="aviso-privacidad">🔒 No escribas datos personales (nombre completo, DNI, teléfono, dirección). El asistente usa inteligencia artificial y puede equivocarse: revisá siempre las respuestas y, ante dudas, consultá con tu docente o la institución. El dictado por voz lo procesa el servicio de voz de tu navegador.</p>
 </main>
+
+<!-- ===== Modo voz ===== -->
+<div id="modo-voz" class="oculto" role="dialog" aria-label="Modo voz">
+  <div class="arriba">
+    <img id="voz-logo" alt="" src="">
+    <div class="t" id="voz-titulo">Asistente Educativo</div>
+    <button class="idioma oculto" id="voz-idioma" title="Idioma en que hablás">🇦🇷 Español</button>
+    <button class="cerrar" id="voz-cerrar" aria-label="Cerrar modo voz">✕</button>
+  </div>
+  <div class="escena" id="escena" aria-label="Tocá para hablar">
+    <canvas id="orbe"></canvas>
+    <canvas id="ecualizador"></canvas>
+    <div class="estado-voz" id="estado-voz">Tocá el globo y hablá</div>
+  </div>
+  <div class="dialogo" id="voz-dialogo" aria-live="polite"></div>
+  <div class="acciones-voz">
+    <button class="principal" id="voz-hablar">🎙️ Hablar</button>
+    <button id="voz-callar">⏹️ Detener</button>
+    <button id="voz-repetir">🔁 Repetir respuesta</button>
+  </div>
+  <div class="sin-voz oculto" id="sin-voz">Este navegador no permite dictar por voz. Probá con Google Chrome o Microsoft Edge (en computadora o Android). Igual podés escuchar las respuestas.</div>
+</div>
 
 <footer>Asistente Educativo con IA · Diseño y desarrollo: Prof. y Mg. Hugo D. Karlau</footer>
 
@@ -275,9 +330,11 @@ function agregarBurbuja(rol, texto){
   return d;
 }
 
-async function enviar(){
-  const texto = $("texto").value.trim();
-  if (!texto || estado.enviando) return;
+// Envía una consulta (escrita o dictada). Devuelve el texto de la respuesta o null si falló.
+async function enviar(textoDictado){
+  const texto = (typeof textoDictado === "string" ? textoDictado : $("texto").value).trim();
+  if (!texto || estado.enviando) return null;
+  let respuesta = null;
   estado.enviando = true; $("btn-enviar").disabled = true;
   $("error").classList.add("oculto");
   $("texto").value = "";
@@ -301,17 +358,286 @@ async function enviar(){
     } else {
       estado.mensajes.push({ rol:"asistente", texto:datos.respuesta });
       agregarBurbuja("asistente", datos.respuesta);
+      respuesta = datos.respuesta;
+      if (voz.leerRespuestas && !voz.abierto) hablar(datos.respuesta);
     }
   } catch {
     espera.remove(); estado.mensajes.pop(); burbujaUsuario.remove(); $("texto").value = texto;
     mostrarError("Sin conexión. Revisá internet y probá de nuevo.");
   }
-  estado.enviando = false; $("btn-enviar").disabled = false; $("texto").focus();
+  estado.enviando = false; $("btn-enviar").disabled = false;
+  if (!voz.abierto) $("texto").focus();
+  return respuesta;
 }
 function mostrarError(t){ $("error").textContent = t; $("error").classList.remove("oculto"); }
 
-$("formulario").addEventListener("submit", e => { e.preventDefault(); enviar(); });
+$("formulario").addEventListener("submit", e => { e.preventDefault(); detenerVoz(); enviar(); });
 $("texto").addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); enviar(); } });
+
+// =====================================================================
+//  VOZ: dictado (reconocimiento de voz del navegador), lectura en voz
+//  alta (síntesis de voz) y «Modo voz» con globo y ecualizador animados.
+// =====================================================================
+const Reconocimiento = window.SpeechRecognition || window.webkitSpeechRecognition;
+const voz = { abierto:false, leerRespuestas:false, escuchando:false, hablando:false, pensando:false,
+              rec:null, idioma:"es-AR", ultima:"", nivel:0, analizador:null, datos:null, flujo:null, ctx:null };
+
+// ---- Texto apto para leer en voz alta (sin LaTeX ni Markdown) ----
+function paraVoz(t){
+  let s = String(t || "");
+  const pot = (n) => n === "2" ? "al cuadrado" : n === "3" ? "al cubo" : "elevado a la " + n;
+  // (−3)² ≠ −3²: la base entre paréntesis se lee explícitamente
+  s = s.replace(/\(([^()]+)\)\s*\^\s*\{?(\w+)\}?/g, (m, a, n) => ` ${a} entre paréntesis, ${pot(n)} `);
+  s = s.replace(/(^|[\s$(=+*\/])[-−]\s*(\d)/g, "$1 menos $2");
+  for (let i = 0; i < 4; i++) s = s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, " $1 sobre $2 ");
+  s = s.replace(/\\sqrt\[3\]\{([^{}]*)\}/g, " raíz cúbica de $1 ")
+       .replace(/\\sqrt\{([^{}]*)\}/g, " raíz cuadrada de $1 ")
+       .replace(/\^\{?2\}?/g, " al cuadrado ").replace(/\^\{?3\}?/g, " al cubo ")
+       .replace(/\^\{([^{}]*)\}/g, " elevado a la $1 ").replace(/\^(\w)/g, " elevado a la $1 ")
+       .replace(/\\cdot|\\times/g, " por ").replace(/\\div/g, " dividido ")
+       .replace(/\\leq?/g, " menor o igual que ").replace(/\\geq?/g, " mayor o igual que ")
+       .replace(/\\neq/g, " distinto de ").replace(/\\pi/g, " pi ")
+       .replace(/\\left|\\right|\\,|\;|\\!/g, " ").replace(/\\[a-zA-Z]+/g, " ")
+       .replace(/\$+/g, " ").replace(/[{}]/g, " ")
+       .replace(/\*\*|__|`|#+\s/g, "").replace(/^\s*[-*•]\s+/gm, "").replace(/^\s*(\d+)[.)]\s+/gm, "$1. ")
+       .replace(/(\d)\s*\/\s*(\d)/g, "$1 sobre $2")
+       .replace(/\s=\s|=/g, " igual a ").replace(/(\d)\s*\+\s*(\d)/g, "$1 más $2")
+       .replace(/\s[-−]\s/g, " menos ").replace(/\(\s*[-−]\s*(\d)/g, "(menos $1").replace(/[−]/g, " menos ")
+       .replace(/^[-−]\s*(\d)/, "menos $1").replace(/[()]/g, " ")
+       .replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, "")
+       .replace(/[<>]/g, " ").replace(/\s+/g, " ");
+  return s.trim();
+}
+
+// ---- Síntesis de voz ----
+function elegirVoz(lang){
+  const voces = speechSynthesis.getVoices();
+  const base = lang.slice(0,2);
+  const orden = base === "es" ? ["es-AR","es-US","es-419","es-MX","es-ES","es"] : ["en-US","en-GB","en"];
+  for (const o of orden){
+    const v = voces.filter(x => x.lang.replace("_","-").toLowerCase().startsWith(o.toLowerCase()));
+    if (v.length) return v.find(x => /natural|online|google/i.test(x.name)) || v[0];
+  }
+  return null;
+}
+function detectarIdioma(t){
+  if (estado.institucion !== "718") return "es-AR";
+  const en = (t.match(/\b(the|is|are|you|your|and|what|this|have|has|can|my|do|does)\b/gi) || []).length;
+  const es = (t.match(/\b(el|la|los|las|que|es|son|de|para|con|una|un|y)\b/gi) || []).length;
+  return en > es ? "en-US" : "es-AR";
+}
+function hablar(texto){
+  if (!("speechSynthesis" in window)) return;
+  detenerVoz();
+  voz.ultima = texto;
+  const limpio = paraVoz(texto);
+  if (!limpio) return;
+  const lang = detectarIdioma(texto);
+  const frases = limpio.match(/[^.!?¿¡:;]+[.!?:;]*/g) || [limpio];   // de a frases: Chrome corta textos largos
+  frases.forEach((f, i) => {
+    const u = new SpeechSynthesisUtterance(f.trim());
+    u.lang = lang; u.rate = 1.0; u.pitch = 1.0;
+    const v = elegirVoz(lang); if (v) u.voice = v;
+    if (i === 0) u.onstart = () => { voz.hablando = true; actualizarEstado(); };
+    if (i === frases.length - 1){ u.onend = u.onerror = () => { voz.hablando = false; actualizarEstado(); }; }
+    speechSynthesis.speak(u);
+  });
+}
+function detenerVoz(){
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  voz.hablando = false; actualizarEstado();
+}
+if ("speechSynthesis" in window) speechSynthesis.onvoiceschanged = () => speechSynthesis.getVoices();
+
+// ---- Nivel del micrófono (para el ecualizador real) ----
+async function abrirMicrofono(){
+  try{
+    voz.flujo = await navigator.mediaDevices.getUserMedia({ audio:true });
+    voz.ctx = voz.ctx || new (window.AudioContext || window.webkitAudioContext)();
+    const fuente = voz.ctx.createMediaStreamSource(voz.flujo);
+    voz.analizador = voz.ctx.createAnalyser(); voz.analizador.fftSize = 128;
+    voz.datos = new Uint8Array(voz.analizador.frequencyBinCount);
+    fuente.connect(voz.analizador);
+  }catch{ voz.analizador = null; }
+}
+function cerrarMicrofono(){
+  if (voz.flujo) voz.flujo.getTracks().forEach(t => t.stop());
+  voz.flujo = null; voz.analizador = null;
+}
+
+// ---- Reconocimiento de voz ----
+function escuchar(destino){            // destino: "voz" (modo voz) o "texto" (dictado en el cuadro)
+  if (!Reconocimiento || voz.escuchando || estado.enviando) return;
+  detenerVoz();
+  const rec = new Reconocimiento();
+  rec.lang = voz.idioma; rec.interimResults = true; rec.continuous = false; rec.maxAlternatives = 1;
+  let final = "";
+  rec.onstart = () => { voz.escuchando = true; actualizarEstado(); if (destino === "voz") abrirMicrofono(); else $("btn-mic").classList.add("activo"); };
+  rec.onresult = (e) => {
+    let parcial = ""; final = "";
+    for (const r of e.results){ if (r.isFinal) final += r[0].transcript; else parcial += r[0].transcript; }
+    const visible = (final + " " + parcial).trim();
+    if (destino === "voz") $("voz-dialogo").innerHTML = `<div class="preg">🗣️ ${escapar(visible)}</div>`;
+    else $("texto").value = visible;
+  };
+  rec.onerror = (e) => {
+    if (e.error === "not-allowed" || e.error === "service-not-allowed")
+      alertaVoz("Necesito permiso para usar el micrófono. Revisá el candado de la barra de direcciones.");
+    else if (e.error === "no-speech") alertaVoz("No te escuché. Tocá el globo y probá de nuevo.");
+  };
+  rec.onend = async () => {
+    voz.escuchando = false; cerrarMicrofono(); $("btn-mic").classList.remove("activo"); actualizarEstado();
+    const texto = final.trim();
+    if (!texto) return;
+    if (destino === "texto"){ $("texto").value = texto; enviar(); return; }
+    voz.pensando = true; actualizarEstado();
+    const resp = await enviar(texto);
+    voz.pensando = false; actualizarEstado();
+    if (resp){
+      const d = $("voz-dialogo");
+      d.innerHTML = `<div class="preg">🗣️ ${escapar(texto)}</div><div class="resp">${formatear(resp)}</div>`;
+      renderMatematica(d); d.scrollTop = 0;
+      hablar(resp);
+    } else {
+      alertaVoz($("error").textContent || "No pude obtener respuesta. Probá de nuevo.");
+    }
+  };
+  voz.rec = rec;
+  try { rec.start(); } catch {}
+}
+function alertaVoz(t){ if (voz.abierto) $("estado-voz").textContent = t; else mostrarError(t); }
+
+function actualizarEstado(){
+  if (!voz.abierto) return;
+  $("estado-voz").textContent =
+    voz.escuchando ? "Te escucho…" :
+    voz.pensando  ? "Pensando…" :
+    voz.hablando  ? "Respondiendo…" : (Reconocimiento ? "Tocá el globo y hablá" : "Escribí tu consulta en el chat");
+  $("voz-hablar").textContent = voz.escuchando ? "⏹️ Terminar" : "🎙️ Hablar";
+}
+
+// ---- Modo voz: abrir / cerrar ----
+function abrirModoVoz(){
+  voz.abierto = true;
+  const i = INSTITUCIONES[estado.institucion];
+  $("voz-logo").src = i.logo || ""; $("voz-logo").style.display = i.logo ? "" : "none";
+  $("voz-titulo").innerHTML = `<b>${tituloModo(estado.modo)}</b><br>${i.nombre}`;
+  $("voz-idioma").classList.toggle("oculto", estado.institucion !== "718");
+  $("sin-voz").classList.toggle("oculto", !!Reconocimiento);
+  $("voz-hablar").classList.toggle("oculto", !Reconocimiento);
+  $("voz-dialogo").innerHTML = "";
+  $("modo-voz").classList.remove("oculto");
+  actualizarEstado(); animar();
+}
+function cerrarModoVoz(){
+  voz.abierto = false;
+  if (voz.rec) try { voz.rec.abort(); } catch {}
+  detenerVoz(); cerrarMicrofono();
+  $("modo-voz").classList.add("oculto");
+}
+$("btn-modo-voz").addEventListener("click", abrirModoVoz);
+$("voz-cerrar").addEventListener("click", cerrarModoVoz);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && voz.abierto) cerrarModoVoz(); });
+const alternarEscucha = () => { if (voz.escuchando){ try { voz.rec.stop(); } catch {} } else escuchar("voz"); };
+$("escena").addEventListener("click", alternarEscucha);
+$("voz-hablar").addEventListener("click", alternarEscucha);
+$("voz-callar").addEventListener("click", () => { if (voz.rec) try { voz.rec.abort(); } catch {} detenerVoz(); });
+$("voz-repetir").addEventListener("click", () => { if (voz.ultima) hablar(voz.ultima); });
+$("voz-idioma").addEventListener("click", () => {
+  voz.idioma = voz.idioma === "es-AR" ? "en-US" : "es-AR";
+  $("voz-idioma").textContent = voz.idioma === "es-AR" ? "🇦🇷 Español" : "🇬🇧 English";
+});
+$("btn-mic").addEventListener("click", () => { if (voz.escuchando){ try { voz.rec.stop(); } catch {} } else escuchar("texto"); });
+$("btn-leer").addEventListener("click", () => {
+  voz.leerRespuestas = !voz.leerRespuestas;
+  $("btn-leer").setAttribute("aria-pressed", voz.leerRespuestas);
+  $("btn-leer").textContent = voz.leerRespuestas ? "🔊 Leyendo en voz alta" : "🔈 Leer en voz alta";
+  if (!voz.leerRespuestas) detenerVoz();
+});
+if (!Reconocimiento) $("btn-mic").classList.add("oculto");
+if (!("speechSynthesis" in window)) $("btn-leer").classList.add("oculto");
+
+// ---- Animación: globo de partículas + ecualizador ----
+const PUNTOS = (() => {                      // puntos distribuidos sobre una esfera (espiral de Fibonacci)
+  const n = 700, p = [], phi = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < n; i++){
+    const y = 1 - (i / (n - 1)) * 2, r = Math.sqrt(1 - y * y), th = phi * i;
+    p.push([Math.cos(th) * r, y, Math.sin(th) * r]);
+  }
+  return p;
+})();
+let angulo = 0, fase = 0, animando = false;
+const barras = new Array(40).fill(0);
+function colorEstado(){
+  if (voz.escuchando) return [56,189,248];      // celeste
+  if (voz.pensando)   return [168,85,247];      // violeta
+  if (voz.hablando)   return [52,211,153];      // verde agua
+  return [99,102,241];                          // índigo en reposo
+}
+function animar(){
+  if (animando) return; animando = true;
+  const cv = $("orbe"), eq = $("ecualizador");
+  const paso = () => {
+    if (!voz.abierto){ animando = false; return; }
+    const dpr = window.devicePixelRatio || 1;
+    for (const c of [cv, eq]){
+      const w = c.clientWidth * dpr, h = c.clientHeight * dpr;
+      if (c.width !== w || c.height !== h){ c.width = w; c.height = h; }
+    }
+    // nivel de sonido
+    let objetivo = 0, espectro = null;
+    if (voz.escuchando && voz.analizador){
+      voz.analizador.getByteFrequencyData(voz.datos);
+      espectro = voz.datos;
+      objetivo = voz.datos.reduce((a, b) => a + b, 0) / voz.datos.length / 255 * 2.2;
+    } else if (voz.escuchando){              // sin acceso al nivel del micrófono: animación suave
+      objetivo = 0.22 + 0.18 * Math.abs(Math.sin(fase * 2.4));
+    } else if (voz.hablando){
+      objetivo = 0.35 + 0.3 * Math.abs(Math.sin(fase * 3.1)) * Math.abs(Math.sin(fase * 1.7 + 1));
+    } else if (voz.pensando){
+      objetivo = 0.15 + 0.1 * Math.sin(fase * 4);
+    } else objetivo = 0.05 + 0.03 * Math.sin(fase * 1.5);
+    voz.nivel += (Math.min(objetivo, 1) - voz.nivel) * 0.18;
+    fase += 0.03; angulo += voz.pensando ? 0.025 : 0.006 + voz.nivel * 0.02;
+
+    // globo
+    const g = cv.getContext("2d"), W = cv.width, H = cv.height, R = Math.min(W, H) * 0.36 * (1 + voz.nivel * 0.22);
+    const [cr, cg, cb] = colorEstado();
+    g.clearRect(0, 0, W, H);
+    const halo = g.createRadialGradient(W/2, H/2, R * 0.2, W/2, H/2, R * 1.45);
+    halo.addColorStop(0, `rgba(${cr},${cg},${cb},${0.18 + voz.nivel * 0.25})`);
+    halo.addColorStop(1, "rgba(0,0,0,0)");
+    g.fillStyle = halo; g.fillRect(0, 0, W, H);
+    const ca = Math.cos(angulo), sa = Math.sin(angulo), inc = 0.35, ci = Math.cos(inc), si = Math.sin(inc);
+    g.globalCompositeOperation = "lighter";
+    for (const [x0, y0, z0] of PUNTOS){
+      const ond = 1 + voz.nivel * 0.12 * Math.sin(y0 * 8 + fase * 6);
+      let x = x0 * ca - z0 * sa, z = x0 * sa + z0 * ca, y = y0;
+      const y2 = y * ci - z * si; z = y * si + z * ci; y = y2;
+      const prof = (z + 1) / 2;
+      g.fillStyle = `rgba(${cr},${cg},${cb},${0.15 + prof * 0.85})`;
+      g.beginPath(); g.arc(W/2 + x * R * ond, H/2 + y * R * ond, (0.6 + prof * 1.8) * dpr, 0, 6.283); g.fill();
+    }
+    g.globalCompositeOperation = "source-over";
+
+    // ecualizador
+    const e = eq.getContext("2d"), EW = eq.width, EH = eq.height, n = barras.length, ancho = EW / n;
+    e.clearRect(0, 0, EW, EH);
+    for (let i = 0; i < n; i++){
+      let v;
+      if (espectro) v = espectro[Math.floor(i / n * espectro.length * 0.7)] / 255;
+      else v = voz.nivel * (0.45 + 0.55 * Math.abs(Math.sin(fase * 5 + i * 0.55) * Math.cos(fase * 2.3 + i * 0.21)));
+      barras[i] += (v - barras[i]) * 0.3;
+      const h = Math.max(2 * dpr, barras[i] * EH * 0.95);
+      const grad = e.createLinearGradient(0, EH/2 - h/2, 0, EH/2 + h/2);
+      grad.addColorStop(0, `rgba(${cr},${cg},${cb},0.95)`); grad.addColorStop(1, "rgba(124,58,237,0.75)");
+      e.fillStyle = grad;
+      e.fillRect(i * ancho + ancho * 0.2, EH/2 - h/2, ancho * 0.6, h);
+    }
+    requestAnimationFrame(paso);
+  };
+  requestAnimationFrame(paso);
+}
 </script>
 </body>
 </html>

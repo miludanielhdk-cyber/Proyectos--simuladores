@@ -12,16 +12,23 @@ Diseño y desarrollo: Prof. y Mg. Hugo D. Karlau.
 
 - La clave de Gemini queda guardada en Netlify y **nunca** llega al navegador.
 - Las fórmulas se muestran con formato matemático (fracciones apiladas).
-- En «Información institucional» solo responde con lo cargado en `netlify/functions/conocimiento.mjs`; si no tiene el dato, deriva a la institución.
+- **Tutor:** en la 718 sigue las instrucciones de Botito718 (Matemática e Inglés); en el CUP, las de Albus Bot. En ambos casos usa como referencia fragmentos de los cuadernillos del docente.
+- **Información institucional del ISET:** sigue las instrucciones del Asistente 812 y responde solo con la documentación oficial cargada (RAI, RAM, ROM, Calendario Académico 2026, horarios 2026, diseños curriculares y correlatividades), citando la fuente.
+- **Información institucional de la 718 y el CUP:** todavía sin documentación; deriva a preceptoría o Secretaría.
 
 ## Archivos
 
 ```
-index.html                       página del asistente (selector + chat)
-img/logo_cup.png                 logo del CUP
-netlify/functions/chat.mjs       función segura que consulta a Gemini
-netlify/functions/conocimiento.mjs  fichas de información oficial por institución
-netlify.toml                     configuración de Netlify
+index.html                                   página del asistente (selector + chat)
+img/                                         logos de la 718, el CUP y el CeRET
+vendor/katex/                                fórmulas matemáticas
+netlify/functions/chat/chat.mjs              función segura que consulta a Gemini
+netlify/functions/chat/buscador.mjs          busca los fragmentos relevantes para cada consulta
+netlify/functions/chat/base_conocimiento.mjs documentos y cuadernillos en fragmentos (generado)
+netlify/functions/chat/instrucciones/*.md    instrucciones de Botito718, Albus Bot y Asistente 812
+netlify/functions/chat/conocimiento.mjs      datos de cada institución
+herramientas/construir_base.py               regenera la base y las instrucciones
+netlify.toml                                 configuración de Netlify
 ```
 
 ## Publicación en Netlify (una sola vez)
@@ -34,11 +41,17 @@ netlify.toml                     configuración de Netlify
    - `GEMINI_MODEL` = opcional; por defecto `gemini-flash-latest`.
 4. **Deploys → Trigger deploy**. Listo: se comparte el enlace del sitio.
 
-## Cargar información institucional
+## Actualizar la información
 
-Editar `netlify/functions/conocimiento.mjs` y pegar texto de documentos **oficiales** de cada institución
-(horarios, calendario, mesas, correlatividades, régimen de asistencia, contactos), indicando fuente y fecha.
-Al guardar en GitHub, Netlify vuelve a publicar solo.
+- **Instrucciones de un bot:** editar el `.md` correspondiente en `netlify/functions/chat/instrucciones/` y correr `python3 herramientas/construir_base.py <carpeta_textos>`.
+- **Documentos o cuadernillos nuevos:** agregar el texto a la carpeta de textos, sumarlo a `FUENTES` (o a `cuad/indice.tsv`) en `construir_base.py` y volver a generar la base.
+- De la planilla de correlatividades se usan **solo** las hojas DATOS_UC y DATOS_REQ: nunca se cargan datos de estudiantes.
+- Al guardar en GitHub, Netlify vuelve a publicar solo.
+
+### Fuentes cargadas (14/11/2026)
+
+ISET N.º 812: RAI; RAM; ROM; Calendario Académico Anual 2026 (versión de la cuenta institucional, 22/10/2026); horarios 2026 de TSER (2.º cuatrimestre), TSL, TSMI (1.º año) y TSPIA (1.º y 2.º año) (1.º cuatrimestre); diseños curriculares de TSL 2022, PyG, TSMI, Multimedios, TSPIA 2017 y TSER 2022 (versión preliminar); correlatividades y planes de las siete tecnicaturas.
+Escuela 718 y CUP: 32 cuadernillos del estudiante (16 por institución) de 1.º y 3.º (718) y 1.º y 2.º (CUP).
 
 ## Cuidados
 

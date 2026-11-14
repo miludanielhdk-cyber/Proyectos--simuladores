@@ -141,17 +141,26 @@ const MODOS = {
              est:"Te guío paso a paso para que resuelvas tus ejercicios.",
              doc:"Resoluciones comentadas, errores frecuentes y variantes de ejercicios." },
   info:    { titulo:"Información institucional", icono:"🏫",
-             est:"Consultas sobre la institución (solo con información oficial cargada).",
-             doc:"Consultas sobre la institución (solo con información oficial cargada)." },
+             est:"Correlatividades, régimen académico, calendario y horarios (información oficial).",
+             doc:"Correlatividades, régimen académico, calendario y horarios (información oficial)." },
   docente: { titulo:"Asistente docente", icono:"📝",
              doc:"Planificaciones, consignas, actividades, rúbricas y adecuaciones." },
 };
 const MODOS_POR_PERFIL = { estudiante:["tutor","info"], docente:["tutor","info","docente"] };
-const BIENVENIDA = {
-  tutor:   "¡Hola! Soy tu tutor de Matemática. Contame qué ejercicio o tema estás trabajando y lo vamos resolviendo juntos, paso a paso.",
-  info:    "¡Hola! Puedo responder consultas sobre la institución con la información oficial que tengo cargada. ¿Qué querés saber?",
-  docente: "¡Hola! ¿En qué te ayudo? Puedo armar una planificación, una secuencia, actividades graduadas, una rúbrica o adecuaciones. Indicame curso, tema y propósito.",
-};
+function bienvenida(){
+  const i = estado.institucion, m = estado.modo, doc = estado.perfil === "docente";
+  if (m === "tutor" && i === "718" && !doc)
+    return "¡Hola! Soy tu tutor de Matemática e Inglés de la Escuela N.º 718. Contame qué ejercicio o tema estás trabajando y lo resolvemos juntos, paso a paso. ¿Preferís empezar con una pista o con una explicación?";
+  if (m === "tutor" && !doc)
+    return "¡Hola! Soy tu tutor de Matemática. Contame qué ejercicio o tema estás trabajando y lo vamos resolviendo juntos, paso a paso.";
+  if (m === "tutor")
+    return "¡Hola! Puedo mostrarte resoluciones comentadas, errores frecuentes de los estudiantes y variantes de ejercicios. ¿Con qué tema empezamos?";
+  if (m === "info" && i === "iset")
+    return "¡Bienvenido/a al Asistente Académico del ISET N.º 812!\n\nPuedo ayudarte a consultar información institucional oficial sobre:\n- 📚 Correlatividades\n- 📖 Planes de estudio\n- 📝 Régimen académico\n- 🎓 Requisitos para cursar o rendir\n- 🗓️ Calendario académico y horarios\n- 🏛️ Normativas y procedimientos institucionales\n\nMis respuestas se basan exclusivamente en la documentación oficial cargada. ¿Sobre qué tema necesitás información?";
+  if (m === "info")
+    return "¡Hola! Todavía no tengo información institucional cargada de esta escuela, así que para horarios, fechas o normas te voy a sugerir consultar en preceptoría o Secretaría. ¿En qué te puedo orientar?";
+  return "¡Hola! ¿En qué te ayudo? Puedo armar una planificación, una secuencia, actividades graduadas, una rúbrica o adecuaciones. Indicame curso, tema y propósito.";
+}
 
 // ===================== Estado =====================
 const estado = { institucion:null, perfil:null, modo:null, codigo:"", mensajes:[], enviando:false };
@@ -193,13 +202,21 @@ $("btn-codigo").addEventListener("click", () => { estado.codigo = $("codigo").va
 $("codigo").addEventListener("keydown", e => { if (e.key === "Enter") $("btn-codigo").click(); });
 
 // 3. Modos
+function descModo(m, d){
+  if (m === "info" && estado.institucion !== "iset") return "Consultas sobre la escuela (todavía sin documentación oficial cargada).";
+  if (m === "tutor" && estado.institucion === "718" && estado.perfil !== "docente") return "Te guío paso a paso en Matemática e Inglés.";
+  return estado.perfil === "docente" ? d.doc : d.est;
+}
+function tituloModo(m){
+  return (m === "tutor" && estado.institucion === "718") ? "Tutor de Matemática e Inglés" : MODOS[m].titulo;
+}
 function armarModos(){
   const cont = $("lista-modos"); cont.innerHTML = "";
   MODOS_POR_PERFIL[estado.perfil].forEach(m => {
     const d = MODOS[m];
     const b = document.createElement("button");
     b.className = "tarjeta";
-    b.innerHTML = `<span class="ico">${d.icono}</span><span><b>${d.titulo}</b><small>${estado.perfil === "docente" ? d.doc : d.est}</small></span>`;
+    b.innerHTML = `<span class="ico">${d.icono}</span><span><b>${tituloModo(m)}</b><small>${descModo(m, d)}</small></span>`;
     b.addEventListener("click", () => { estado.modo = m; iniciarChat(); });
     cont.appendChild(b);
   });
@@ -211,8 +228,8 @@ function iniciarChat(){
   $("mensajes").innerHTML = "";
   $("error").classList.add("oculto");
   $("etq-inst").textContent = INSTITUCIONES[estado.institucion].sigla;
-  $("etq-modo").textContent = MODOS[estado.modo].titulo + (estado.perfil === "docente" ? " · Docente" : " · Estudiante");
-  agregarBurbuja("asistente", BIENVENIDA[estado.modo]);
+  $("etq-modo").textContent = tituloModo(estado.modo) + (estado.perfil === "docente" ? " · Docente" : " · Estudiante");
+  agregarBurbuja("asistente", bienvenida());
   mostrar("chat");
   $("texto").focus();
 }

@@ -46,6 +46,12 @@ Este catálogo registra **qué está publicado y dónde**. El código fuente de 
 | planoyfuncionlineal3 | https://planoyfuncionlineal3.netlify.app |
 | proporcionalidaddirecta246 | https://proporcionalidaddirecta246.netlify.app |
 
+## Integradores (1)
+
+| Sitio | Enlace |
+|---|---|
+| viajandohacia4 | https://viajandohacia4.netlify.app |
+
 ## Geometría (3)
 
 | Sitio | Enlace |
@@ -93,6 +99,7 @@ Estos sitios conservan el nombre que Netlify asigna por defecto. Conviene abrirl
 |---|---|---|
 | `sitios/planoyfuncionlineal-2/` | Viaje por el Plano 2 (nivel 2, Escuela 718). Corregido: el botón «Siguiente» ya no aparece antes de responder. | 12/11/2026 |
 | `sitios/planoyfuncionlineal3/` | Viaje por el Plano 3 (nivel 3, Escuela 718, trabajo con Simón): plano de −6 a 6, mover puntos, distancias, perímetro y área, tablas que suben y bajan, dos gráficos, rectas y ejes; cuentas para hacer en la hoja. | 12/11/2026 |
+| `sitios/viajandohacia4/` | «Viajando hacia 4.º año» (Escuela 718, trabajo con Simón): sitio integrador de 6 estaciones que sintetiza el Viaje de Estaciones, el Viaje de Fracciones y los Viaje por el Plano 1, 2 y 3 (ecuaciones con la cajita, fracciones, ecuaciones con fracciones, plano cartesiano, tablas y fórmulas, gráficos y rectas). Fracciones apiladas, cuentas en la hoja, Actividades con clave, panel docente (Ctrl + D) y diploma. Proyecto creado en Netlify; falta la primera subida. | 19/11/2026 |
 | `sitios/asistente-educativo-718-cup-iset/` | Asistente Educativo con IA (Gemini) para la Escuela 718, el CUP y el ISET N.º 812: estudiantes (tutor de Matemática, información institucional) y docentes con código (además, asistente docente). La clave de Gemini va como variable de entorno en Netlify; ver LEEME.md. Con logos de la 718, CUP y CeRET; tutor con instrucciones de Botito718 (718) y Albus Bot (CUP) + cuadernillos; información oficial del ISET (RAI, RAM, ROM, horarios TSER, diseños curriculares y correlatividades de cinco tecnicaturas) con instrucciones del Asistente 812. Con dictado, lectura en voz alta y Modo voz (globo y ecualizador). Pendiente de publicar. | 14/11/2026 |
 
 ## Logos institucionales
